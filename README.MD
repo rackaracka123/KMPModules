@@ -1,4 +1,4 @@
-# Kotlin Multiplatform Module Readme
+# Kotlin Multiplatform Module
 
 This Kotlin Multiplatform module facilitates seamless integration with your projects, providing a common codebase across multiple platforms. To ensure secure access to releases, follow the steps below:
 
@@ -27,7 +27,7 @@ Make sure `your_github_token` has permissions to read packages. For more informa
     ```kotlin
     maven {
         name = "GitHubPackages"
-        url = java.net.URI("https://maven.pkg.github.com/alsterverse/kmp-modules")
+        url = java.net.URI("https://maven.pkg.github.com/alsterverse/AlsterKMPModules")
         credentials {
             username = username
             password = token
