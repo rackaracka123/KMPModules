@@ -12,9 +12,17 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       GITHUB_ACTOR: ${{ secrets.GH_ACTOR }}
-      VERSION: ${{ steps.tag_version.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Extract Version
+        id: extract_version
+        run: |
+          VERSION=$(echo $GITHUB_REF | sed 's/refs\/tags\/v//')
+          echo "Version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+      - name: Set Version as Env Variable
+        run: echo "VERSION=${{ steps.extract_version.outputs.version }}" >> $GITHUB_ENV
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
