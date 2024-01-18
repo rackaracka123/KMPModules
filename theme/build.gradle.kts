@@ -15,9 +15,7 @@ fun readProperties(propertiesFile: File) = Properties().apply {
     }
 }
 
-val githubProperties = readProperties(file("github.properties"))
-val username: String? by githubProperties
-val password: String? by githubProperties
+val githubProperties = readProperties(rootProject.file("github.properties"))
 
 publishing {
     group = "se.alster.kmp"
@@ -25,10 +23,10 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = URI("https://maven.pkg.github.com/alsterverse/ ÄNDRA DENNA SENARE")
+            url = URI("https://maven.pkg.github.com/alsterverse/AlsterKMPModules")
             credentials {
-                username = username ?: System.getenv("GITHUB_ACTOR")
-                password = password ?: System.getenv("GITHUB_TOKEN")
+                username = githubProperties.getProperty("username") ?: System.getenv("GITHUB_ACTOR")
+                password = githubProperties.getProperty("token")  ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
