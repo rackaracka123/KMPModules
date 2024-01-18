@@ -19,7 +19,7 @@ val githubProperties = readProperties(rootProject.file("github.properties"))
 
 publishing {
     group = "se.alster.kmp"
-    version = "1.0.0" // TODO: Make this automatic
+    version = githubProperties.getProperty("version") ?: System.getenv("VERSION")
     repositories {
         maven {
             name = "GitHubPackages"
