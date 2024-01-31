@@ -93,7 +93,7 @@ private fun QrScannerScreen(modifier: Modifier, onQrCodeScanned: (String) -> Uni
 
         CameraAccess.Denied -> {
             Box(modifier, contentAlignment = Alignment.Center) {
-                Text("Camera access denied", color = Color.White, style = TextStyle.Default)
+                Text("Camera access denied", color = Color.Black, style = TextStyle.Default)
             }
         }
 
