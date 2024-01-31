@@ -55,6 +55,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.material)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
