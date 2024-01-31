@@ -33,7 +33,9 @@ publishing {
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        publishLibraryVariants("release")
+    }
     jvmToolchain(17)
     
     listOf(
