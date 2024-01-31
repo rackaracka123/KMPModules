@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "AlsterKMPModules"
 include(":example")
 include(":theme")
+include(":media")
