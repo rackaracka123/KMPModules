@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
-import se.alster.kmp.media.player.AspectRatio
+import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.player.PlayerView
 import se.alster.kmp.media.player.Track
 import se.alster.kmp.media.player.rememberPlayer

@@ -28,8 +28,9 @@ import platform.AVKit.AVPlayerViewController
 import platform.CoreMedia.CMTimeMake
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSURL.Companion.URLWithString
+import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.player.extensions.getUrl
-import se.alster.kmp.media.player.extensions.toAVLayerVideoGravity
+import se.alster.kmp.media.toAVLayerVideoGravity
 import se.alster.kmp.media.player.extensions.toAVPlayerItem
 import se.alster.kmp.media.player.extensions.toAVPlayerItems
 import se.alster.kmp.media.player.extensions.toDuration

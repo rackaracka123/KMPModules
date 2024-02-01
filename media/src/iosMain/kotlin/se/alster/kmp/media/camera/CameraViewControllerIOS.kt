@@ -15,6 +15,7 @@ import platform.AVFoundation.AVCapturePhotoSettings
 import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
+import platform.AVFoundation.AVLayerVideoGravity
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
@@ -35,6 +36,7 @@ import platform.darwin.dispatch_get_main_queue
 import se.alster.kmp.media.toImageBitmap
 
 internal class CameraViewControllerIOS(
+    private val videoGravity: AVLayerVideoGravity,
     private val onTakePhoto: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?,
     private val onScanComplete: ((String) -> Unit)?
 ) :
@@ -115,7 +117,7 @@ internal class CameraViewControllerIOS(
 
 
         previewLayer.frame = view.layer.bounds
-        previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+        previewLayer.videoGravity = videoGravity
         view.layer.addSublayer(previewLayer)
 
         captureSession.startRunning()

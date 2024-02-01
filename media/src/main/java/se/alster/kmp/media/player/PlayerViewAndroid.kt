@@ -6,6 +6,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
+import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.player.extensions.toResizeMode
 import androidx.media3.ui.PlayerView as AndroidPlayerView
 

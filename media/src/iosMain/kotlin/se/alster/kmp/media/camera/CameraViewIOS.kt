@@ -8,7 +8,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,12 +17,12 @@ import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.text.TextStyle
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
 import platform.AVFoundation.AVAuthorizationStatusRestricted
 import platform.AVFoundation.AVCaptureDevice
+import platform.AVFoundation.AVLayerVideoGravity
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
@@ -32,14 +31,22 @@ import platform.QuartzCore.CATransaction
 import platform.QuartzCore.kCATransactionDisableActions
 import platform.UIKit.UIDevice
 import platform.UIKit.UIView
+import se.alster.kmp.media.AspectRatio
+import se.alster.kmp.media.toAVLayerVideoGravity
 
 @Composable
 actual fun CameraView(
     modifier: Modifier,
+    aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
     photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
 ) {
-    CameraViewIOS(modifier, onQrCodeScanned = onQrCodeScanned, photoController = photoController)
+    CameraViewIOS(
+        modifier,
+        aspectRatio.toAVLayerVideoGravity(),
+        onQrCodeScanned = onQrCodeScanned,
+        photoController = photoController
+    )
 }
 
 
@@ -53,6 +60,7 @@ private sealed interface CameraAccess {
 @Composable
 private fun CameraViewIOS(
     modifier: Modifier,
+    videoGravity: AVLayerVideoGravity,
     onQrCodeScanned: ((String) -> Unit)?,
     photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
 ) {
@@ -92,6 +100,7 @@ private fun CameraViewIOS(
             val cameraViewController =
                 remember {
                     CameraViewControllerIOS(
+                        videoGravity,
                         photoController,
                         onQrCodeScanned
                     )

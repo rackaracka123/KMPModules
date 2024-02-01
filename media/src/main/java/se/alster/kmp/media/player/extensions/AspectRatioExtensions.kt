@@ -2,7 +2,7 @@ package se.alster.kmp.media.player.extensions
 
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
-import se.alster.kmp.media.player.AspectRatio
+import se.alster.kmp.media.AspectRatio
 
 @UnstableApi
 fun AspectRatio.toResizeMode() = when (this) {

@@ -1,4 +1,4 @@
-package se.alster.kmp.media.player
+package se.alster.kmp.media
 
 enum class AspectRatio {
     FitWithAspectRatio,

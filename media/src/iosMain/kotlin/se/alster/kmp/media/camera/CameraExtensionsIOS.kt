@@ -5,6 +5,7 @@ import platform.AVFoundation.AVCaptureVideoOrientationLandscapeLeft
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoOrientationPortraitUpsideDown
+import platform.AVFoundation.AVLayerVideoGravity
 import platform.UIKit.UIDeviceOrientation
 
 internal fun UIDeviceOrientation.mapAVCaptureVideoOrientation(

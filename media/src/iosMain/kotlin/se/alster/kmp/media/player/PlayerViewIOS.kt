@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
+import se.alster.kmp.media.AspectRatio
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
