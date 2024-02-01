@@ -85,6 +85,7 @@ class PlayerIOS : Player {
     override fun prepareTrackForPlayback(track: Track) {
         playerItems.clear()
         val playerItem = AVPlayerItem(URLWithString(track.getUrl())!!)
+        playerItems.add(playerItem)
         avPlayer.replaceCurrentItemWithPlayerItem(playerItem)
     }
 
