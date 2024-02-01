@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
@@ -30,7 +31,11 @@ import androidx.lifecycle.LifecycleOwner
 import java.util.concurrent.Executor
 
 @Composable
-actual fun CameraView(modifier: Modifier) {
+actual fun CameraView(
+    modifier: Modifier,
+    onQrCodeScanned: ((String) -> Unit)?,
+    photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
+) {
     CameraViewAndroid(modifier)
 }
 
