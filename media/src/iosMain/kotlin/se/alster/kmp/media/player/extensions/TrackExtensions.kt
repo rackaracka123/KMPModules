@@ -6,9 +6,9 @@ import se.alster.kmp.media.player.Track
 import se.alster.kmp.media.player.TrackList
 
 fun Track.getUrl() = when (this) {
-    is Track.Mp4Vod -> this.url
-    is Track.HlsVod -> this.url
-    is Track.HlsDashVod -> this.hls
+    is Track.Mp4 -> this.url
+    is Track.Hls -> this.url
+    is Track.HlsDash -> this.hls
 }
 
 fun Track.toAVPlayerItem() = AVPlayerItem(NSURL.URLWithString(getUrl())!!)

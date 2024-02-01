@@ -21,9 +21,9 @@ fun VideoPlayerExample() {
     )
     DisposableEffect(Unit) {
         player.prepareTrackForPlayback(
-            Track.Mp4Vod("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4")
+            Track.Hls("https://live-par-2-cdn-alt.livepush.io/live/bigbuckbunnyclip/index.m3u8")
         )
-        player.addTrackToTrackList(Track.Mp4Vod("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"))
+        player.setPlayOnReady(true)
         onDispose {
             player.release()
         }
