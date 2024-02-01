@@ -29,7 +29,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import se.alster.kmp.media.AspectRatio
-import se.alster.kmp.media.player.extensions.toResizeMode
 import java.util.concurrent.Executor
 
 @Composable
@@ -37,9 +36,31 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
+    photoController: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?
 ) {
-    CameraViewAndroid(modifier, aspectRatio)
+    val context = LocalContext.current
+    val imageCapture = remember(context) { ImageCapture.Builder().build() }
+    val executor = remember(context) { ContextCompat.getMainExecutor(context) }
+
+    photoController?.let { onTakePhoto ->
+        onTakePhoto { callback ->
+            imageCapture.takePicture(
+                executor,
+                ImageCapturedCallbackAndroid {
+                    it.imageOrNull()?.let { image ->
+                        callback(image)
+                    }
+                }
+            )
+        }
+    }
+
+    CameraViewAndroid(
+        modifier = modifier,
+        aspectRatio = aspectRatio,
+        executor = executor,
+        imageCapture = imageCapture
+    )
 }
 
 @Composable

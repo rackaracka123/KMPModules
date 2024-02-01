@@ -37,7 +37,7 @@ import se.alster.kmp.media.toImageBitmap
 
 internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
-    private val onTakePhoto: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?,
+    private val onTakePhoto: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?,
     private val onScanComplete: ((String) -> Unit)?
 ) :
     UIViewController(nibName = null, bundle = null),
@@ -94,7 +94,7 @@ internal class CameraViewControllerIOS(
             return
         }
 
-        onTakePhoto?.invoke {
+        onTakePhoto?.invoke { callback ->
             val capturePhotoOutput = AVCapturePhotoOutput()
             capturePhotoOutput.capturePhotoWithSettings(
                 AVCapturePhotoSettings.photoSettingsWithFormat(
@@ -107,7 +107,7 @@ internal class CameraViewControllerIOS(
                         error: NSError?
                     ) {
                         didFinishProcessingPhoto.fileDataRepresentation()?.let {
-                            it(UIImage(it).toImageBitmap())
+                            callback(UIImage(it).toImageBitmap())
                         }
                     }
                 },

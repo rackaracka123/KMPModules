@@ -10,5 +10,5 @@ expect fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
+    photoController: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?
 )
