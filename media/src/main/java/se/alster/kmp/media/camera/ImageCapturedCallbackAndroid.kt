@@ -7,7 +7,7 @@ import androidx.camera.core.ImageProxy
 import se.alster.kmp.media.extensions.moveToByteArray
 import se.alster.kmp.media.extensions.toImageBitmap
 
-class ImagePicturedCallbackAndroid(private val onPictureTaken: (CaptureResultAndroid) -> Unit) :
+class ImageCapturedCallbackAndroid(private val onPictureTaken: (CaptureResultAndroid) -> Unit) :
     OnImageCapturedCallback() {
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     override fun onCaptureSuccess(image: ImageProxy) {
