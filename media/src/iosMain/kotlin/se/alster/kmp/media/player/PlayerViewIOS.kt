@@ -8,9 +8,15 @@ import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun PlayerView(modifier: Modifier, player: Player, aspectRatio: AspectRatio) {
+actual fun PlayerView(
+    modifier: Modifier,
+    player: Player,
+    aspectRatio: AspectRatio,
+    enableMediaControls: Boolean
+) {
     val playerIOS = player as? PlayerIOS ?: return
     playerIOS.setAspectRatio(aspectRatio)
+    playerIOS.setEnableMediaControls(enableMediaControls)
 
     DisposableEffect(Unit) {
         onDispose {

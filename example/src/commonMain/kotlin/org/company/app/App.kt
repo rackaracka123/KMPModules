@@ -3,7 +3,6 @@ package org.company.app
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import se.alster.kmp.media.player.AspectRatio
 import se.alster.kmp.media.player.PlayerView
@@ -18,6 +17,7 @@ internal fun App() {
         modifier = Modifier.fillMaxSize(),
         player = player,
         aspectRatio = AspectRatio.FitWithAspectRatio,
+        enableMediaControls = true
     )
     DisposableEffect(Unit) {
         player.prepareTrackForPlayback(

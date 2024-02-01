@@ -9,8 +9,14 @@ import androidx.media3.common.util.UnstableApi
 import se.alster.kmp.media.player.extensions.toResizeMode
 import androidx.media3.ui.PlayerView as AndroidPlayerView
 
-@OptIn(UnstableApi::class) @Composable
-actual fun PlayerView(modifier: Modifier, player: Player, aspectRatio: AspectRatio) {
+@OptIn(UnstableApi::class)
+@Composable
+actual fun PlayerView(
+    modifier: Modifier,
+    player: Player,
+    aspectRatio: AspectRatio,
+    enableMediaControls: Boolean
+) {
     val androidPlayer = player as? PlayerAndroid ?: return
 
     DisposableEffect(Unit) {
@@ -23,6 +29,7 @@ actual fun PlayerView(modifier: Modifier, player: Player, aspectRatio: AspectRat
         AndroidPlayerView(it).apply {
             setPlayer(androidPlayer.exoPlayer)
             resizeMode = aspectRatio.toResizeMode()
+            useController = enableMediaControls
         }
     }, modifier = modifier)
 }

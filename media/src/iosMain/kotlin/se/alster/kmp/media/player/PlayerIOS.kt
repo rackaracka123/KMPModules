@@ -71,6 +71,10 @@ class PlayerIOS : Player {
         }
     }
 
+    fun setEnableMediaControls(enableMediaControls: Boolean) {
+        playerViewController.showsPlaybackControls = enableMediaControls
+    }
+
     override fun release() {
         avPlayer.removeTimeObserver(addPeriodicTimeObserverForInterval)
         NSNotificationCenter.defaultCenter.removeObserver(trackCompletedObserver)
