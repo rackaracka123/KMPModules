@@ -1,4 +1,4 @@
-package se.alster.kmp.media.camera
+package se.alster.kmp.media
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
