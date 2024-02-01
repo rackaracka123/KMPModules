@@ -32,6 +32,7 @@ import platform.UIKit.UIImage
 import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
+import se.alster.kmp.media.toImageBitmap
 
 internal class CameraViewControllerIOS(
     private val onTakePhoto: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?,
