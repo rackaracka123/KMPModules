@@ -23,6 +23,7 @@ internal fun App() {
         player.prepareTrackForPlayback(
             Track.Mp4Vod("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4")
         )
+        player.addTrackToTrackList(Track.Mp4Vod("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"))
         onDispose {
             player.release()
         }
