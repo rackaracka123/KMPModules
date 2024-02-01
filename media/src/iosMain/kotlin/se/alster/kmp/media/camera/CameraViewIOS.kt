@@ -101,7 +101,7 @@ private fun QrScannerScreen(modifier: Modifier, onQrCodeScanned: (String) -> Uni
             val scannerController = remember { QRScannerViewController(onQrCodeScanned) }
 
             LaunchedEffect(UIDevice.currentDevice.orientation) {
-                scannerController.onOrientationChanged()
+                scannerController.onOrientationChanged(UIDevice.currentDevice.orientation)
             }
             DisposableEffect(Unit) {
                 UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
@@ -134,11 +134,9 @@ private class QRScannerViewController(
     private val previewLayer: AVCaptureVideoPreviewLayer =
         AVCaptureVideoPreviewLayer(session = captureSession)
 
-    fun onOrientationChanged() {
-        if (previewLayer.connection?.videoOrientation != null) {
-            previewLayer.connection?.videoOrientation = UIDevice.currentDevice.orientation
-                .mapAVCaptureVideoOrientation(AVCaptureVideoOrientationLandscapeRight)
-        }
+    fun onOrientationChanged(orientation: UIDeviceOrientation) {
+        previewLayer.connection?.videoOrientation = orientation
+            .mapAVCaptureVideoOrientation(AVCaptureVideoOrientationLandscapeRight)
     }
 
     @OptIn(ExperimentalForeignApi::class)
