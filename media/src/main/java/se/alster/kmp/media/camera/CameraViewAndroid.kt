@@ -2,6 +2,7 @@ package se.alster.kmp.media.camera
 
 import android.Manifest
 import android.content.Context
+import android.util.Rational
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,7 +40,25 @@ actual fun CameraView(
     onQrCodeScanned: ((String) -> Unit)?,
     photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
 ) {
-    CameraViewAndroid(modifier, aspectRatio)
+    val context = LocalContext.current
+    val imageCapture = remember(context) { ImageCapture.Builder().build() }
+    val executor = remember(context) { ContextCompat.getMainExecutor(context) }
+
+    photoController?.invoke {
+        imageCapture.takePicture(
+            executor,
+            ImagePicturedCallbackAndroid { captureResult ->
+                captureResult.imageOrNull()?.let(it)
+            }
+        )
+    }
+
+    CameraViewAndroid(
+        modifier = modifier,
+        aspectRatio = aspectRatio,
+        executor = executor,
+        imageCapture = imageCapture
+    )
 }
 
 @Composable
