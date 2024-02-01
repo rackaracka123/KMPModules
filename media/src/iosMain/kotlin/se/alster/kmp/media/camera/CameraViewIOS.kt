@@ -57,7 +57,6 @@ private fun CameraViewIOS(
     photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
 ) {
     var cameraAccess: CameraAccess by remember { mutableStateOf(CameraAccess.Undefined) }
-    val waitForCameraScope: CoroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
