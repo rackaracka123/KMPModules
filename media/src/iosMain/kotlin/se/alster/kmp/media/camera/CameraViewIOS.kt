@@ -18,6 +18,8 @@ import androidx.compose.ui.text.TextStyle
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
@@ -86,9 +88,12 @@ private fun CameraViewIOS(modifier: Modifier, onQrCodeScanned: (String) -> Unit)
                 remember {
                     CameraViewControllerIOS(
                         { takePhoto ->
-                            takePhoto {
-                                println("Photo taken")
-                                println("Size: ${it.height}")
+                            waitForCameraScope.launch {
+                                delay(2000)
+                                takePhoto {
+                                    println("Photo taken")
+                                    println("Size: ${it.height}")
+                                }
                             }
                         },
                         onQrCodeScanned
