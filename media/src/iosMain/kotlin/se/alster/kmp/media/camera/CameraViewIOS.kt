@@ -13,19 +13,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.text.TextStyle
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
 import platform.AVFoundation.AVAuthorizationStatusRestricted
 import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVCapturePhotoOutput
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
@@ -36,8 +34,12 @@ import platform.UIKit.UIDevice
 import platform.UIKit.UIView
 
 @Composable
-actual fun CameraView(modifier: Modifier) {
-    CameraViewIOS(modifier, onQrCodeScanned = {})
+actual fun CameraView(
+    modifier: Modifier,
+    onQrCodeScanned: ((String) -> Unit)?,
+    photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
+) {
+    CameraViewIOS(modifier, onQrCodeScanned = onQrCodeScanned, photoController = photoController)
 }
 
 
@@ -49,7 +51,11 @@ private sealed interface CameraAccess {
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-private fun CameraViewIOS(modifier: Modifier, onQrCodeScanned: (String) -> Unit) {
+private fun CameraViewIOS(
+    modifier: Modifier,
+    onQrCodeScanned: ((String) -> Unit)?,
+    photoController: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?
+) {
     var cameraAccess: CameraAccess by remember { mutableStateOf(CameraAccess.Undefined) }
     val waitForCameraScope: CoroutineScope = rememberCoroutineScope()
 
@@ -87,15 +93,7 @@ private fun CameraViewIOS(modifier: Modifier, onQrCodeScanned: (String) -> Unit)
             val cameraViewController =
                 remember {
                     CameraViewControllerIOS(
-                        { takePhoto ->
-                            waitForCameraScope.launch {
-                                delay(2000)
-                                takePhoto {
-                                    println("Photo taken")
-                                    println("Size: ${it.height}")
-                                }
-                            }
-                        },
+                        photoController,
                         onQrCodeScanned
                     )
                 }

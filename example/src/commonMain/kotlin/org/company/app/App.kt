@@ -7,5 +7,5 @@ import se.alster.kmp.media.camera.CameraView
 
 @Composable
 internal fun App() {
-    CameraView(modifier = Modifier.fillMaxSize())
+    CameraView(modifier = Modifier.fillMaxSize(), {}, {})
 }

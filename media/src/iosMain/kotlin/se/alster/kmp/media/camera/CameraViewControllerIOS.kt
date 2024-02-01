@@ -34,8 +34,8 @@ import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 
 internal class CameraViewControllerIOS(
-    private val onTakePhoto: (photoCallback: (photo: (ImageBitmap) -> Unit ) -> Unit) -> Unit,
-    private val onScanComplete: (String) -> Unit
+    private val onTakePhoto: ((photoCallback: (photo: (ImageBitmap) -> Unit) -> Unit) -> Unit)?,
+    private val onScanComplete: ((String) -> Unit)?
 ) :
     UIViewController(nibName = null, bundle = null),
     AVCaptureMetadataOutputObjectsDelegateProtocol {
@@ -91,8 +91,8 @@ internal class CameraViewControllerIOS(
             return
         }
 
-        val capturePhotoOutput = AVCapturePhotoOutput()
-        onTakePhoto {
+        onTakePhoto?.invoke {
+            val capturePhotoOutput = AVCapturePhotoOutput()
             capturePhotoOutput.capturePhotoWithSettings(
                 AVCapturePhotoSettings.photoSettingsWithFormat(
                     format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
@@ -109,9 +109,9 @@ internal class CameraViewControllerIOS(
                     }
                 },
             )
+            captureSession.addOutput(capturePhotoOutput)
         }
 
-        captureSession.addOutput(capturePhotoOutput)
 
         previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
@@ -146,7 +146,7 @@ internal class CameraViewControllerIOS(
         val stringValue = readableObject?.stringValue!!
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
 
-        onScanComplete(stringValue)
+        onScanComplete?.invoke(stringValue)
         dismissViewControllerAnimated(true, null)
     }
 
