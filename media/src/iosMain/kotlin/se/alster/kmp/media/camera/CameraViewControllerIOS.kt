@@ -34,6 +34,11 @@ import se.alster.kmp.media.camera.extensions.mapAVCaptureVideoOrientation
 import se.alster.kmp.media.camera.util.captureDeviceInputByPosition
 import se.alster.kmp.media.toImageBitmap
 
+/*
+ * CameraViewControllerIOS is a UIViewController that manages the camera view and the camera session.
+ * It is used to take photos and scan QR codes.
+ * It throws a CameraNotFoundException if the front or back camera is not found.
+ */
 internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
     private val onTakePhoto: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
