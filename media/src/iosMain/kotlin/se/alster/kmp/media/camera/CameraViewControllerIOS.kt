@@ -3,6 +3,7 @@ package se.alster.kmp.media.camera
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVCaptureConnection
+import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
@@ -19,6 +20,7 @@ import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.AVVideoCodecKey
 import platform.AVFoundation.AVVideoCodecTypeJPEG
 import platform.AVFoundation.fileDataRepresentation
+import platform.AVFoundation.position
 import platform.AudioToolbox.AudioServicesPlaySystemSound
 import platform.AudioToolbox.kSystemSoundID_Vibrate
 import platform.CoreGraphics.CGRect
@@ -49,9 +51,9 @@ internal class CameraViewControllerIOS(
     private val previewLayer: AVCaptureVideoPreviewLayer =
         AVCaptureVideoPreviewLayer(session = captureSession)
 
-    private val frontCamera: AVCaptureInput = captureDeviceInputByPosition(CameraFacing.Front)
+    private val frontCamera: AVCaptureDeviceInput = captureDeviceInputByPosition(CameraFacing.Front)
         ?: throw CameraNotFoundException("Front camera not found")
-    private val backCamera: AVCaptureInput = captureDeviceInputByPosition(CameraFacing.Back)
+    private val backCamera: AVCaptureDeviceInput = captureDeviceInputByPosition(CameraFacing.Back)
         ?: throw CameraNotFoundException("Back camera not found")
 
     fun onOrientationChanged(orientation: UIDeviceOrientation) {
@@ -164,20 +166,21 @@ internal class CameraViewControllerIOS(
     }
 
     private fun switchCamera(cameraFacing: CameraFacing) {
+        removeAllCameras()
         when (cameraFacing) {
             CameraFacing.Front -> {
-                if (captureSession.inputs.contains(frontCamera)) {
-                    captureSession.removeInput(frontCamera)
-                }
-                captureSession.addInput(backCamera)
+                captureSession.addInput(frontCamera)
             }
 
             CameraFacing.Back -> {
-                if (captureSession.inputs.contains(backCamera)) {
-                    captureSession.removeInput(backCamera)
-                }
-                captureSession.addInput(frontCamera)
+                captureSession.addInput(backCamera)
             }
+        }
+    }
+    private fun removeAllCameras() {
+        captureSession.inputs.forEach {
+            it as AVCaptureDeviceInput
+            captureSession.removeInput(it)
         }
     }
 }
