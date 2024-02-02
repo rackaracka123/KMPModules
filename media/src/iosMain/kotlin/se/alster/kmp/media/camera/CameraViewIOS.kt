@@ -110,16 +110,15 @@ private fun CameraViewIOS(
             LaunchedEffect(cameraFacing) {
                 cameraViewController.onCameraFacingChanged(cameraFacing)
             }
-
-            LaunchedEffect(UIDevice.currentDevice.orientation) {
-                cameraViewController.onOrientationChanged()
-            }
             DisposableEffect(Unit) {
                 UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
                 onDispose {
                     UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
                     cameraViewController.onDispose()
                 }
+            }
+            LaunchedEffect(UIDevice.currentDevice.orientation) {
+                cameraViewController.onOrientationChanged(UIDevice.currentDevice.orientation)
             }
             UIKitView(factory = {
                 cameraViewController.view

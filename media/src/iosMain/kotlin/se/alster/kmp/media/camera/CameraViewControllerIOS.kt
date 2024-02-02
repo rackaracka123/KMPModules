@@ -3,8 +3,6 @@ package se.alster.kmp.media.camera
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVCaptureConnection
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
@@ -16,7 +14,6 @@ import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravity
-import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
 import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.AVVideoCodecKey
@@ -27,7 +24,7 @@ import platform.AudioToolbox.kSystemSoundID_Vibrate
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
 import platform.UIKit.UIColor
-import platform.UIKit.UIDevice
+import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIImage
 import platform.UIKit.UIViewController
 import platform.darwin.NSObject
@@ -40,8 +37,7 @@ internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
     private val onTakePhoto: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
     private val onScanComplete: ((String) -> Unit)?,
-) : UIViewController(nibName = null, bundle = null),
-    AVCaptureMetadataOutputObjectsDelegateProtocol {
+) : UIViewController(nibName = null, bundle = null) {
 
     private val captureSession: AVCaptureSession = AVCaptureSession()
     private val previewLayer: AVCaptureVideoPreviewLayer =
@@ -50,10 +46,11 @@ internal class CameraViewControllerIOS(
     private val frontCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Front)
     private val backCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Back)
 
-    fun onOrientationChanged() {
+    fun onOrientationChanged(orientation: UIDeviceOrientation) {
         if (previewLayer.connection?.videoOrientation != null) {
-            previewLayer.connection?.videoOrientation = UIDevice.currentDevice.orientation
-                .mapAVCaptureVideoOrientation(AVCaptureVideoOrientationLandscapeRight)
+            previewLayer.connection?.videoOrientation =
+                orientation.mapAVCaptureVideoOrientation(AVCaptureVideoOrientationLandscapeRight)
+            println("Orientation changed to $orientation")
         }
     }
 
@@ -76,9 +73,28 @@ internal class CameraViewControllerIOS(
 
         val metadataOutput = AVCaptureMetadataOutput()
 
-        if (captureSession.canAddOutput(metadataOutput)) {
+        if (metadataOutput.availableMetadataObjectTypes.contains(AVMetadataObjectTypeQRCode)
+            && captureSession.canAddOutput(metadataOutput)
+            && onScanComplete != null
+        ) {
             captureSession.addOutput(metadataOutput)
-            metadataOutput.setMetadataObjectsDelegate(this, queue = dispatch_get_main_queue())
+            metadataOutput.setMetadataObjectsDelegate(
+                object : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
+                    override fun captureOutput(
+                        output: platform.AVFoundation.AVCaptureOutput,
+                        didOutputMetadataObjects: List<*>,
+                        fromConnection: AVCaptureConnection
+                    ) {
+                        captureSession.stopRunning()
+                        val data = didOutputMetadataObjects.first()
+                        val readableObject = data as? AVMetadataMachineReadableCodeObject
+                        val stringValue = readableObject?.stringValue!!
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+
+                        onScanComplete.invoke(stringValue)
+                        dismissViewControllerAnimated(true, null)
+                    }
+                }, queue = dispatch_get_main_queue())
             metadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
         } else {
             return
@@ -128,22 +144,6 @@ internal class CameraViewControllerIOS(
         if (captureSession.isRunning()) {
             captureSession.stopRunning()
         }
-    }
-
-
-    override fun captureOutput(
-        output: platform.AVFoundation.AVCaptureOutput,
-        didOutputMetadataObjects: List<*>,
-        fromConnection: AVCaptureConnection
-    ) {
-        captureSession.stopRunning()
-        val data = didOutputMetadataObjects.first()
-        val readableObject = data as? AVMetadataMachineReadableCodeObject
-        val stringValue = readableObject?.stringValue!!
-        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-
-        onScanComplete?.invoke(stringValue)
-        dismissViewControllerAnimated(true, null)
     }
 
     override fun prefersStatusBarHidden(): Boolean {
