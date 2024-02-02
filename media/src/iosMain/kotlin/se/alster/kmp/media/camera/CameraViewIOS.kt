@@ -31,6 +31,7 @@ import platform.QuartzCore.kCATransactionDisableActions
 import platform.UIKit.UIDevice
 import platform.UIKit.UIView
 import se.alster.kmp.media.AspectRatio
+import se.alster.kmp.media.camera.exception.CameraNotFoundException
 import se.alster.kmp.media.toAVLayerVideoGravity
 
 @Composable
@@ -50,13 +51,6 @@ actual fun CameraView(
     )
 }
 
-
-private sealed interface CameraAccess {
-    data object Undefined : CameraAccess
-    data object Denied : CameraAccess
-    data object Authorized : CameraAccess
-}
-
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 private fun CameraViewIOS(
@@ -66,70 +60,90 @@ private fun CameraViewIOS(
     photoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
     cameraFacing: CameraFacing
 ) {
-    var cameraAccess: CameraAccess by remember { mutableStateOf(CameraAccess.Undefined) }
+    var cameraState: CameraState by remember { mutableStateOf(CameraState.Undefined) }
 
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
             AVAuthorizationStatusAuthorized -> {
-                cameraAccess = CameraAccess.Authorized
+                cameraState = CameraState.Access.Authorized
             }
 
             AVAuthorizationStatusDenied, AVAuthorizationStatusRestricted -> {
-                cameraAccess = CameraAccess.Denied
+                cameraState = CameraState.Access.Denied
             }
 
             AVAuthorizationStatusNotDetermined -> {
                 AVCaptureDevice.requestAccessForMediaType(
                     mediaType = AVMediaTypeVideo
                 ) { success ->
-                    cameraAccess = if (success) CameraAccess.Authorized else CameraAccess.Denied
+                    cameraState =
+                        if (success) CameraState.Access.Authorized else CameraState.Access.Denied
                 }
             }
         }
     }
-    when (cameraAccess) {
-        CameraAccess.Undefined -> {
+    when (cameraState) {
+        CameraState.Undefined -> {
             // Waiting for the user to accept permission
         }
 
-        CameraAccess.Denied -> {
+        CameraState.Access.Denied -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text("Camera access denied", color = Color.Black, style = TextStyle.Default)
             }
         }
 
-        CameraAccess.Authorized -> {
+        CameraState.Simulator -> {
+            Box(modifier, contentAlignment = Alignment.Center) {
+                Text(
+                    "Camera not available in simulator",
+                    color = Color.Black,
+                    style = TextStyle.Default
+                )
+            }
+        }
+
+        CameraState.Access.Authorized -> {
             val cameraViewController =
                 remember {
-                    CameraViewControllerIOS(
-                        videoGravity,
-                        photoController,
-                        onQrCodeScanned,
-                    )
+                    try {
+                        CameraViewControllerIOS(
+                            videoGravity,
+                            photoController,
+                            onQrCodeScanned,
+                        )
+                    } catch (e: CameraNotFoundException) {
+                        null
+                    }
                 }
-            LaunchedEffect(cameraFacing) {
-                cameraViewController.onCameraFacingChanged(cameraFacing)
+            if (cameraViewController == null) {
+                cameraState = CameraState.Simulator
             }
-            DisposableEffect(Unit) {
-                UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
-                onDispose {
-                    UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
-                    cameraViewController.onDispose()
+            cameraViewController?.let {
+                LaunchedEffect(cameraFacing) {
+                    cameraViewController.onCameraFacingChanged(cameraFacing)
                 }
+                DisposableEffect(Unit) {
+                    UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
+                    onDispose {
+                        UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
+                        cameraViewController.onDispose()
+                    }
+                }
+                LaunchedEffect(UIDevice.currentDevice.orientation) {
+                    cameraViewController.onOrientationChanged(UIDevice.currentDevice.orientation)
+                }
+                UIKitView(factory = {
+                    cameraViewController.view
+                }, modifier = modifier,
+                    onResize = { view: UIView, rect: CValue<CGRect> ->
+                        CATransaction.begin()
+                        CATransaction.setValue(true, kCATransactionDisableActions)
+                        view.layer.setFrame(rect)
+                        cameraViewController.onResize(rect)
+                        CATransaction.commit()
+                    })
             }
-            LaunchedEffect(UIDevice.currentDevice.orientation) {
-                cameraViewController.onOrientationChanged(UIDevice.currentDevice.orientation)
-            }
-            UIKitView(factory = {
-                cameraViewController.view
-            }, modifier = modifier,
-                onResize = { view: UIView, rect: CValue<CGRect> ->
-                    CATransaction.begin()
-                    CATransaction.setValue(true, kCATransactionDisableActions)
-                    view.layer.setFrame(rect)
-                    cameraViewController.onResize(rect)
-                    CATransaction.commit()
-                })
         }
     }
 }

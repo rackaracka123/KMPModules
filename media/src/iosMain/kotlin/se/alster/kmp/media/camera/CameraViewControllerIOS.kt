@@ -29,6 +29,7 @@ import platform.UIKit.UIImage
 import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
+import se.alster.kmp.media.camera.exception.CameraNotFoundException
 import se.alster.kmp.media.camera.extensions.mapAVCaptureVideoOrientation
 import se.alster.kmp.media.camera.util.captureDeviceInputByPosition
 import se.alster.kmp.media.toImageBitmap
@@ -43,8 +44,10 @@ internal class CameraViewControllerIOS(
     private val previewLayer: AVCaptureVideoPreviewLayer =
         AVCaptureVideoPreviewLayer(session = captureSession)
 
-    private val frontCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Front)
-    private val backCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Back)
+    private val frontCamera: AVCaptureInput = captureDeviceInputByPosition(CameraFacing.Front)
+        ?: throw CameraNotFoundException("Front camera not found")
+    private val backCamera: AVCaptureInput = captureDeviceInputByPosition(CameraFacing.Back)
+        ?: throw CameraNotFoundException("Back camera not found")
 
     fun onOrientationChanged(orientation: UIDeviceOrientation) {
         if (previewLayer.connection?.videoOrientation != null) {
@@ -94,7 +97,8 @@ internal class CameraViewControllerIOS(
                         onScanComplete.invoke(stringValue)
                         dismissViewControllerAnimated(true, null)
                     }
-                }, queue = dispatch_get_main_queue())
+                }, queue = dispatch_get_main_queue()
+            )
             metadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
         } else {
             return
@@ -157,21 +161,17 @@ internal class CameraViewControllerIOS(
     private fun switchCamera(cameraFacing: CameraFacing) {
         when (cameraFacing) {
             CameraFacing.Front -> {
-                if (frontCamera != null && captureSession.inputs.contains(frontCamera)) {
+                if (captureSession.inputs.contains(frontCamera)) {
                     captureSession.removeInput(frontCamera)
                 }
-                if (backCamera != null) {
-                    captureSession.addInput(backCamera)
-                }
+                captureSession.addInput(backCamera)
             }
 
             CameraFacing.Back -> {
-                if (backCamera != null && captureSession.inputs.contains(backCamera)) {
+                if (captureSession.inputs.contains(backCamera)) {
                     captureSession.removeInput(backCamera)
                 }
-                if (frontCamera != null) {
-                    captureSession.addInput(frontCamera)
-                }
+                captureSession.addInput(frontCamera)
             }
         }
     }
