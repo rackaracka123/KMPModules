@@ -6,8 +6,11 @@ import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -22,13 +25,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import se.alster.kmp.media.AspectRatio
+import se.alster.kmp.media.extensions.moveToByteArray
+import se.alster.kmp.media.extensions.toImageBitmap
 import java.util.concurrent.Executor
 
 @Composable
@@ -36,19 +40,36 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?
+    takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    cameraOrientation: CameraFacing
 ) {
     val context = LocalContext.current
     val imageCapture = remember(context) { ImageCapture.Builder().build() }
     val executor = remember(context) { ContextCompat.getMainExecutor(context) }
 
-    photoController?.let { onTakePhoto ->
-        onTakePhoto { callback ->
+    takePhotoController?.let { controller ->
+        controller { onTakePhoto ->
             imageCapture.takePicture(
                 executor,
-                ImageCapturedCallbackAndroid {
-                    it.imageOrNull()?.let { image ->
-                        callback(image)
+                object :
+                    ImageCapture.OnImageCapturedCallback() {
+                    @androidx.annotation.OptIn(ExperimentalGetImage::class)
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        super.onCaptureSuccess(image)
+                        image.use { imageProxy ->
+                            onTakePhoto(
+                                imageProxy.image?.planes?.getOrNull(0)?.buffer
+                                    ?.moveToByteArray()
+                                    ?.toImageBitmap()
+                                    ?.let { CaptureResult.Success(it) }
+                                    ?: CaptureResult.Failure
+                            )
+                        }
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        super.onError(exception)
+                        onTakePhoto(CaptureResult.Failure)
                     }
                 }
             )

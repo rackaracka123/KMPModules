@@ -17,14 +17,13 @@ fun CameraExample(){
         aspectRatio = AspectRatio.FitWithAspectRatio,
         onQrCodeScanned = {
             println("QR code scanned: $it")
-        },
-        photoController = {
-            coroutineScope.launch {
-                delay(2000)
-                it {
-                    println("Photo taken")
-                }
+        }
+    ) {
+        coroutineScope.launch {
+            delay(2000)
+            it {
+                println("Photo taken")
             }
         }
-    )
+    }
 }

@@ -39,13 +39,15 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?
+    takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    cameraOrientation: CameraFacing
 ) {
     CameraViewIOS(
         modifier,
         aspectRatio.toAVLayerVideoGravity(),
         onQrCodeScanned = onQrCodeScanned,
-        photoController = photoController
+        photoController = takePhotoController,
+        cameraOrientation = cameraOrientation
     )
 }
 
@@ -62,7 +64,8 @@ private fun CameraViewIOS(
     modifier: Modifier,
     videoGravity: AVLayerVideoGravity,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((onTakePhoto: ((photo: ImageBitmap) -> Unit) -> Unit) -> Unit)?
+    photoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    cameraOrientation: CameraFacing
 ) {
     var cameraAccess: CameraAccess by remember { mutableStateOf(CameraAccess.Undefined) }
 
