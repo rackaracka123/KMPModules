@@ -1,11 +1,11 @@
 package se.alster.kmp.media.camera
 
-import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
+import platform.AVFoundation.AVCaptureInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
 import platform.AVFoundation.AVCapturePhoto
@@ -16,7 +16,6 @@ import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravity
-import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
 import platform.AVFoundation.AVMetadataObjectTypeQRCode
@@ -33,18 +32,23 @@ import platform.UIKit.UIImage
 import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
+import se.alster.kmp.media.camera.extensions.mapAVCaptureVideoOrientation
+import se.alster.kmp.media.camera.util.captureDeviceInputByPosition
 import se.alster.kmp.media.toImageBitmap
 
 internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
     private val onTakePhoto: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
-    private val onScanComplete: ((String) -> Unit)?
+    private val onScanComplete: ((String) -> Unit)?,
 ) : UIViewController(nibName = null, bundle = null),
     AVCaptureMetadataOutputObjectsDelegateProtocol {
 
     private val captureSession: AVCaptureSession = AVCaptureSession()
     private val previewLayer: AVCaptureVideoPreviewLayer =
         AVCaptureVideoPreviewLayer(session = captureSession)
+
+    private val frontCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Front)
+    private val backCamera: AVCaptureInput? = captureDeviceInputByPosition(CameraFacing.Back)
 
     fun onOrientationChanged() {
         if (previewLayer.connection?.videoOrientation != null) {
@@ -68,20 +72,7 @@ internal class CameraViewControllerIOS(
 
         view.backgroundColor = UIColor.blackColor
 
-        val videoCaptureDevice =
-            AVCaptureDevice.defaultDeviceWithMediaType(mediaType = AVMediaTypeVideo) ?: return
-
-        val videoInput: AVCaptureDeviceInput = try {
-            AVCaptureDeviceInput(device = videoCaptureDevice, error = null)
-        } catch (e: Exception) {
-            return
-        }
-
-        if (captureSession.canAddInput(videoInput)) {
-            captureSession.addInput(videoInput)
-        } else {
-            return
-        }
+        switchCamera(CameraFacing.Back)
 
         val metadataOutput = AVCaptureMetadataOutput()
 
@@ -108,7 +99,7 @@ internal class CameraViewControllerIOS(
                         didFinishProcessingPhoto.fileDataRepresentation()?.let {
                             return callback(CaptureResult.Success(UIImage(it).toImageBitmap()))
                         }
-                        if (error != null){
+                        if (error != null) {
                             return callback(CaptureResult.Failure)
                         }
                     }
@@ -157,5 +148,31 @@ internal class CameraViewControllerIOS(
 
     override fun prefersStatusBarHidden(): Boolean {
         return false
+    }
+
+    fun onCameraFacingChanged(cameraFacing: CameraFacing) {
+        switchCamera(cameraFacing)
+    }
+
+    private fun switchCamera(cameraFacing: CameraFacing) {
+        when (cameraFacing) {
+            CameraFacing.Front -> {
+                if (frontCamera != null && captureSession.inputs.contains(frontCamera)) {
+                    captureSession.removeInput(frontCamera)
+                }
+                if (backCamera != null) {
+                    captureSession.addInput(backCamera)
+                }
+            }
+
+            CameraFacing.Back -> {
+                if (backCamera != null && captureSession.inputs.contains(backCamera)) {
+                    captureSession.removeInput(backCamera)
+                }
+                if (frontCamera != null) {
+                    captureSession.addInput(frontCamera)
+                }
+            }
+        }
     }
 }

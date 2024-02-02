@@ -33,6 +33,7 @@ import androidx.lifecycle.LifecycleOwner
 import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.extensions.moveToByteArray
 import se.alster.kmp.media.extensions.toImageBitmap
+import se.alster.kmp.media.extensions.toLensFacing
 import java.util.concurrent.Executor
 
 @Composable
@@ -41,7 +42,7 @@ actual fun CameraView(
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
     takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
-    cameraOrientation: CameraFacing
+    cameraFacing: CameraFacing
 ) {
     val context = LocalContext.current
     val imageCapture = remember(context) { ImageCapture.Builder().build() }
@@ -80,7 +81,8 @@ actual fun CameraView(
         modifier = modifier,
         aspectRatio = aspectRatio,
         executor = executor,
-        imageCapture = imageCapture
+        imageCapture = imageCapture,
+        cameraFacing = cameraFacing
     )
 }
 
@@ -92,7 +94,8 @@ private fun CameraViewAndroid(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     executor: Executor = remember { ContextCompat.getMainExecutor(context) },
     imageAnalyzer: ImageAnalysis.Analyzer? = null,
-    imageCapture: ImageCapture? = null
+    imageCapture: ImageCapture? = null,
+    cameraFacing: CameraFacing = CameraFacing.Back
 ) {
     val previewCameraView = remember(context) { PreviewView(context) }
     val cameraProviderFuture = remember(context) { ProcessCameraProvider.getInstance(context) }
@@ -106,13 +109,13 @@ private fun CameraViewAndroid(
         launcher.launch(Manifest.permission.CAMERA)
     }
 
-    DisposableEffect(cameraProviderFuture, cameraPermission) {
+    DisposableEffect(cameraProviderFuture, cameraPermission, cameraFacing) {
         val cameraProvider = cameraProviderFuture.get()
         previewCameraView.scaleType = aspectRatio.toScaleType()
         cameraProviderFuture.addListener(
             {
                 val cameraSelector = CameraSelector.Builder()
-                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    .requireLensFacing(cameraFacing.toLensFacing())
                     .build()
 
                 val preview = Preview.Builder().build().apply {

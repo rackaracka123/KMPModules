@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.text.TextStyle
 import kotlinx.cinterop.CValue
@@ -40,14 +39,14 @@ actual fun CameraView(
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
     takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
-    cameraOrientation: CameraFacing
+    cameraFacing: CameraFacing
 ) {
     CameraViewIOS(
         modifier,
         aspectRatio.toAVLayerVideoGravity(),
         onQrCodeScanned = onQrCodeScanned,
         photoController = takePhotoController,
-        cameraOrientation = cameraOrientation
+        cameraFacing = cameraFacing
     )
 }
 
@@ -65,7 +64,7 @@ private fun CameraViewIOS(
     videoGravity: AVLayerVideoGravity,
     onQrCodeScanned: ((String) -> Unit)?,
     photoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
-    cameraOrientation: CameraFacing
+    cameraFacing: CameraFacing
 ) {
     var cameraAccess: CameraAccess by remember { mutableStateOf(CameraAccess.Undefined) }
 
@@ -105,9 +104,12 @@ private fun CameraViewIOS(
                     CameraViewControllerIOS(
                         videoGravity,
                         photoController,
-                        onQrCodeScanned
+                        onQrCodeScanned,
                     )
                 }
+            LaunchedEffect(cameraFacing) {
+                cameraViewController.onCameraFacingChanged(cameraFacing)
+            }
 
             LaunchedEffect(UIDevice.currentDevice.orientation) {
                 cameraViewController.onOrientationChanged()

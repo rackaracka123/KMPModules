@@ -1,4 +1,4 @@
-package se.alster.kmp.media.camera
+package se.alster.kmp.media.camera.extensions
 
 import platform.AVFoundation.AVCaptureVideoOrientation
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeLeft
