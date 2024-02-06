@@ -28,12 +28,9 @@ import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSSelectorFromString
-import platform.Foundation.addObserver
 import platform.QuartzCore.CATransaction
 import platform.QuartzCore.kCATransactionDisableActions
-import platform.UIKit.UIDevice
 import platform.UIKit.UIView
-import platform.darwin.NSObject
 import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.camera.exception.CameraNotFoundException
 import se.alster.kmp.media.toAVLayerVideoGravity

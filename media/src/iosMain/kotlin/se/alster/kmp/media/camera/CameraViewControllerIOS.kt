@@ -36,7 +36,6 @@ import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 import se.alster.kmp.media.camera.exception.CameraNotFoundException
-import se.alster.kmp.media.camera.extensions.mapAVCaptureVideoOrientation
 import se.alster.kmp.media.camera.util.captureDeviceInputByPosition
 import se.alster.kmp.media.toImageBitmap
 
