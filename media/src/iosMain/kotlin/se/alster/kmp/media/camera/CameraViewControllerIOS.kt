@@ -111,6 +111,9 @@ internal class CameraViewControllerIOS(
 
         onTakePhoto?.invoke { callback ->
             val capturePhotoOutput = AVCapturePhotoOutput()
+            if (captureSession.canAddOutput(capturePhotoOutput)){
+                captureSession.addOutput(capturePhotoOutput)
+            }
             capturePhotoOutput.capturePhotoWithSettings(
                 AVCapturePhotoSettings.photoSettingsWithFormat(
                     format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
@@ -130,7 +133,6 @@ internal class CameraViewControllerIOS(
                     }
                 },
             )
-            captureSession.addOutput(capturePhotoOutput)
         }
 
 
