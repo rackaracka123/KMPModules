@@ -26,10 +26,14 @@ import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreGraphics.CGRect
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSSelectorFromString
+import platform.Foundation.addObserver
 import platform.QuartzCore.CATransaction
 import platform.QuartzCore.kCATransactionDisableActions
 import platform.UIKit.UIDevice
 import platform.UIKit.UIView
+import platform.darwin.NSObject
 import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.camera.exception.CameraNotFoundException
 import se.alster.kmp.media.toAVLayerVideoGravity
@@ -123,16 +127,26 @@ private fun CameraViewIOS(
                 LaunchedEffect(cameraFacing) {
                     cameraViewController.onCameraFacingChanged(cameraFacing)
                 }
-                LaunchedEffect(UIDevice.currentDevice.orientation) {
-                    cameraViewController.onOrientationChanged(UIDevice.currentDevice.orientation)
-                }
                 DisposableEffect(Unit) {
-                    UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
+                    val notificationName = platform.UIKit.UIDeviceOrientationDidChangeNotification
+                    NSNotificationCenter.defaultCenter.addObserver(
+                        observer = it,
+                        selector = NSSelectorFromString(
+                            CameraViewControllerIOS::orientationDidChange.name + ":"
+                        ),
+                        name = notificationName,
+                        `object` = null
+                    )
                     onDispose {
-                        UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
                         cameraViewController.onDispose()
+                        NSNotificationCenter.defaultCenter.removeObserver(
+                            observer = it,
+                            name = notificationName,
+                            `object` = null
+                        )
                     }
                 }
+
                 UIKitView(factory = {
                     cameraViewController.view
                 }, modifier = modifier,

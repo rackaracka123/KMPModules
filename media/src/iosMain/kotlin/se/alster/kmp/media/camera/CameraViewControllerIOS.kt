@@ -2,6 +2,7 @@ package se.alster.kmp.media.camera
 
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureMetadataOutput
@@ -11,7 +12,10 @@ import platform.AVFoundation.AVCapturePhotoCaptureDelegateProtocol
 import platform.AVFoundation.AVCapturePhotoOutput
 import platform.AVFoundation.AVCapturePhotoSettings
 import platform.AVFoundation.AVCaptureSession
+import platform.AVFoundation.AVCaptureVideoOrientation
+import platform.AVFoundation.AVCaptureVideoOrientationLandscapeLeft
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
+import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravity
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
@@ -23,7 +27,9 @@ import platform.AudioToolbox.AudioServicesPlaySystemSound
 import platform.AudioToolbox.kSystemSoundID_Vibrate
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
+import platform.Foundation.NSNotification
 import platform.UIKit.UIColor
+import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIImage
 import platform.UIKit.UIViewController
@@ -43,7 +49,7 @@ internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
     private val onTakePhoto: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
     private val onScanComplete: ((String) -> Unit)?,
-) : UIViewController(nibName = null, bundle = null) {
+) : UIViewController(nibName = null, bundle = null){
 
     private val captureSession: AVCaptureSession = AVCaptureSession()
     private val previewLayer: AVCaptureVideoPreviewLayer =
@@ -53,15 +59,7 @@ internal class CameraViewControllerIOS(
         ?: throw CameraNotFoundException("Front camera not found")
     private val backCamera: AVCaptureDeviceInput = captureDeviceInputByPosition(CameraFacing.Back)
         ?: throw CameraNotFoundException("Back camera not found")
-
-    fun onOrientationChanged(orientation: UIDeviceOrientation) {
-        if (previewLayer.connection?.videoOrientation != null) {
-            previewLayer.connection?.videoOrientation =
-                orientation.mapAVCaptureVideoOrientation(AVCaptureVideoOrientationLandscapeRight)
-            println("Orientation changed to $orientation")
-        }
-    }
-
+    private var actualOrientation: AVCaptureVideoOrientation = AVCaptureVideoOrientationLandscapeRight
     @OptIn(ExperimentalForeignApi::class)
     fun onResize(rect: CValue<CGRect>) {
         previewLayer.setFrame(rect)
@@ -161,6 +159,30 @@ internal class CameraViewControllerIOS(
 
     fun onCameraFacingChanged(cameraFacing: CameraFacing) {
         switchCamera(cameraFacing)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    @ObjCAction
+    fun orientationDidChange(arg: NSNotification) {
+        val cameraConnection = previewLayer.connection
+        if (cameraConnection != null) {
+            actualOrientation = when (UIDevice.currentDevice.orientation) {
+                UIDeviceOrientation.UIDeviceOrientationPortrait ->
+                    AVCaptureVideoOrientationPortrait
+
+                UIDeviceOrientation.UIDeviceOrientationLandscapeLeft ->
+                    AVCaptureVideoOrientationLandscapeRight
+
+                UIDeviceOrientation.UIDeviceOrientationLandscapeRight ->
+                    AVCaptureVideoOrientationLandscapeLeft
+
+                UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown ->
+                    AVCaptureVideoOrientationPortrait
+
+                else -> cameraConnection.videoOrientation
+            }
+            cameraConnection.videoOrientation = actualOrientation
+        }
     }
 
     private fun switchCamera(cameraFacing: CameraFacing) {
