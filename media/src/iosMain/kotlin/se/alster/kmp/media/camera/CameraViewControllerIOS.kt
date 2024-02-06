@@ -18,6 +18,8 @@ import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravity
+import platform.AVFoundation.AVMediaType
+import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
 import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.AVVideoCodecKey
@@ -109,6 +111,7 @@ internal class CameraViewControllerIOS(
             if (captureSession.canAddOutput(capturePhotoOutput)){
                 captureSession.addOutput(capturePhotoOutput)
             }
+            capturePhotoOutput.connectionWithMediaType(AVMediaTypeVideo)?.videoOrientation = actualOrientation
             capturePhotoOutput.capturePhotoWithSettings(
                 AVCapturePhotoSettings.photoSettingsWithFormat(
                     format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
