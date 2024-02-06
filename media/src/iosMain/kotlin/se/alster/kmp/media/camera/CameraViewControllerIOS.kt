@@ -107,8 +107,6 @@ internal class CameraViewControllerIOS(
                 }, queue = dispatch_get_main_queue()
             )
             metadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
-        } else {
-            return
         }
 
         onTakePhoto?.invoke { callback ->
