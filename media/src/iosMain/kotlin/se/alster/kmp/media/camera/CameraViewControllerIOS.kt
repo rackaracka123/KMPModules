@@ -4,7 +4,6 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDeviceInput
-import platform.AVFoundation.AVCaptureInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
 import platform.AVFoundation.AVCapturePhoto
@@ -20,7 +19,6 @@ import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.AVVideoCodecKey
 import platform.AVFoundation.AVVideoCodecTypeJPEG
 import platform.AVFoundation.fileDataRepresentation
-import platform.AVFoundation.position
 import platform.AudioToolbox.AudioServicesPlaySystemSound
 import platform.AudioToolbox.kSystemSoundID_Vibrate
 import platform.CoreGraphics.CGRect
