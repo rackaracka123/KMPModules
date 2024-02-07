@@ -16,6 +16,13 @@ import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FallbackStrategy
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,6 +41,7 @@ import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.extensions.moveToByteArray
 import se.alster.kmp.media.extensions.toImageBitmap
 import se.alster.kmp.media.extensions.toLensFacing
+import java.io.File
 import java.util.concurrent.Executor
 
 @Composable
@@ -47,6 +55,20 @@ actual fun CameraView(
     val context = LocalContext.current
     val imageCapture = remember(context) { ImageCapture.Builder().build() }
     val executor = remember(context) { ContextCompat.getMainExecutor(context) }
+    val qualitySelector = QualitySelector.fromOrderedList(
+        listOf(Quality.UHD, Quality.FHD, Quality.HD, Quality.SD),
+        FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)
+    )
+    val recorder = remember(context) {
+        Recorder.Builder()
+            .setQualitySelector(qualitySelector)
+            .setExecutor(executor)
+            .build()
+    }
+    val videoCapture = remember(context) {
+        VideoCapture.withOutput(recorder)
+    }
+    var recording: Recording? by remember { mutableStateOf(null) }
 
     captureController?.invoke(object : CaptureController {
         override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
@@ -75,6 +97,21 @@ actual fun CameraView(
                 }
             )
         }
+
+        override fun startRecording() {
+            println("Start recording")
+            recording = recorder.prepareRecording(
+                context, FileOutputOptions
+                    .Builder(File(context.filesDir, "video.mp4"))
+                    .build()
+            ).start(executor
+            ) {}
+        }
+
+        override fun stopRecording() {
+            println("Stop recording")
+            recording?.stop()
+        }
     })
 
     CameraViewAndroid(
@@ -82,7 +119,8 @@ actual fun CameraView(
         aspectRatio = aspectRatio,
         executor = executor,
         imageCapture = imageCapture,
-        cameraFacing = cameraFacing
+        cameraFacing = cameraFacing,
+        videoCapture = videoCapture
     )
 }
 
@@ -95,6 +133,7 @@ private fun CameraViewAndroid(
     executor: Executor = remember { ContextCompat.getMainExecutor(context) },
     imageAnalyzer: ImageAnalysis.Analyzer? = null,
     imageCapture: ImageCapture? = null,
+    videoCapture: VideoCapture<Recorder>? = null,
     cameraFacing: CameraFacing = CameraFacing.Back
 ) {
     val previewCameraView = remember(context) { PreviewView(context) }
@@ -143,6 +182,7 @@ private fun CameraViewAndroid(
                 listOfNotNull(
                     imageAnalysis,
                     imageCapture,
+                    videoCapture,
                     preview
                 ).forEach { useCaseGroupBuilder.addUseCase(it) }
 
