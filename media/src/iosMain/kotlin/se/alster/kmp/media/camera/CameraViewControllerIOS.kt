@@ -48,9 +48,9 @@ import se.alster.kmp.media.toImageBitmap
  */
 internal class CameraViewControllerIOS(
     private val videoGravity: AVLayerVideoGravity,
-    private val onTakePhoto: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    private val captureController: (CaptureController.() -> Unit)?,
     private val onScanComplete: ((String) -> Unit)?,
-) : UIViewController(nibName = null, bundle = null){
+) : UIViewController(nibName = null, bundle = null) {
 
     private val captureSession: AVCaptureSession = AVCaptureSession()
     private val previewLayer: AVCaptureVideoPreviewLayer =
@@ -60,7 +60,9 @@ internal class CameraViewControllerIOS(
         ?: throw CameraNotFoundException("Front camera not found")
     private val backCamera: AVCaptureDeviceInput = captureDeviceInputByPosition(CameraFacing.Back)
         ?: throw CameraNotFoundException("Back camera not found")
-    private var actualOrientation: AVCaptureVideoOrientation = AVCaptureVideoOrientationLandscapeRight
+    private var actualOrientation: AVCaptureVideoOrientation =
+        AVCaptureVideoOrientationLandscapeRight
+
     @OptIn(ExperimentalForeignApi::class)
     fun onResize(rect: CValue<CGRect>) {
         previewLayer.setFrame(rect)
@@ -106,33 +108,39 @@ internal class CameraViewControllerIOS(
             metadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
         }
 
-        onTakePhoto?.invoke { callback ->
-            val capturePhotoOutput = AVCapturePhotoOutput()
-            if (captureSession.canAddOutput(capturePhotoOutput)){
-                captureSession.addOutput(capturePhotoOutput)
-            }
-            capturePhotoOutput.connectionWithMediaType(AVMediaTypeVideo)?.videoOrientation = actualOrientation
-            capturePhotoOutput.capturePhotoWithSettings(
-                AVCapturePhotoSettings.photoSettingsWithFormat(
-                    format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
-                ),
-                object : NSObject(), AVCapturePhotoCaptureDelegateProtocol {
-                    override fun captureOutput(
-                        output: AVCapturePhotoOutput,
-                        didFinishProcessingPhoto: AVCapturePhoto,
-                        error: NSError?
-                    ) {
-                        didFinishProcessingPhoto.fileDataRepresentation()?.let {
-                            return callback(CaptureResult.Success(UIImage(it).toImageBitmap()))
-                        }
-                        if (error != null) {
-                            return callback(CaptureResult.Failure)
-                        }
-                    }
-                },
-            )
-        }
+        captureController?.invoke(
+            object : CaptureController {
+                private val capturePhotoOutput = AVCapturePhotoOutput()
 
+                init {
+                    if (captureSession.canAddOutput(capturePhotoOutput)) {
+                        captureSession.addOutput(capturePhotoOutput)
+                    }
+                    capturePhotoOutput.connectionWithMediaType(AVMediaTypeVideo)?.videoOrientation =
+                        actualOrientation
+                }
+
+                override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
+                    capturePhotoOutput.capturePhotoWithSettings(
+                        AVCapturePhotoSettings.photoSettingsWithFormat(
+                            format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
+                        ), delegate = object : NSObject(), AVCapturePhotoCaptureDelegateProtocol {
+                            override fun captureOutput(
+                                output: AVCapturePhotoOutput,
+                                didFinishProcessingPhoto: AVCapturePhoto,
+                                error: NSError?
+                            ) {
+                                didFinishProcessingPhoto.fileDataRepresentation()?.let {
+                                    return callback(CaptureResult.Success(UIImage(it).toImageBitmap()))
+                                }
+                                if (error != null) {
+                                    return callback(CaptureResult.Failure)
+                                }
+                            }
+                        }
+                    )
+                }
+            })
 
         previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = videoGravity
@@ -199,6 +207,7 @@ internal class CameraViewControllerIOS(
             }
         }
     }
+
     private fun removeAllCameras() {
         captureSession.inputs.forEach {
             it as AVCaptureDeviceInput

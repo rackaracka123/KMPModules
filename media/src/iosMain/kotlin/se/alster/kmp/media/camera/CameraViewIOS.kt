@@ -40,14 +40,14 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    captureController: (CaptureController.() -> Unit)?,
     cameraFacing: CameraFacing
 ) {
     CameraViewIOS(
         modifier,
         aspectRatio.toAVLayerVideoGravity(),
         onQrCodeScanned = onQrCodeScanned,
-        photoController = takePhotoController,
+        captureController = captureController,
         cameraFacing = cameraFacing
     )
 }
@@ -58,7 +58,7 @@ private fun CameraViewIOS(
     modifier: Modifier,
     videoGravity: AVLayerVideoGravity,
     onQrCodeScanned: ((String) -> Unit)?,
-    photoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    captureController: (CaptureController.() -> Unit)?,
     cameraFacing: CameraFacing
 ) {
     var cameraState: CameraState by remember { mutableStateOf(CameraState.Undefined) }
@@ -110,7 +110,7 @@ private fun CameraViewIOS(
                     try {
                         CameraViewControllerIOS(
                             videoGravity,
-                            photoController,
+                            captureController,
                             onQrCodeScanned,
                         )
                     } catch (e: CameraNotFoundException) {

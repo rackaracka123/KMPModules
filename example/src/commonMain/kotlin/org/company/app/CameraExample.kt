@@ -15,7 +15,7 @@ import se.alster.kmp.media.camera.CameraFacing
 import se.alster.kmp.media.camera.CameraView
 
 @Composable
-fun CameraExample(){
+fun CameraExample() {
     val coroutineScope = rememberCoroutineScope()
     var cameraFacing by remember { mutableStateOf(CameraFacing.Back) }
     coroutineScope.launch {
@@ -28,11 +28,11 @@ fun CameraExample(){
         onQrCodeScanned = {
             println("QR code scanned: $it")
         },
-        takePhotoController = { onTakePhoto ->
+        captureController = {
             coroutineScope.launch {
-                delay(1000)
-                onTakePhoto { photo ->
-                    println("Photo taken: $photo")
+                delay(5000)
+                takePicture {
+                    println("Picture taken: $it")
                 }
             }
         },

@@ -41,15 +41,15 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    takePhotoController: ((onTakePhoto: ((photo: CaptureResult) -> Unit) -> Unit) -> Unit)?,
+    captureController: (CaptureController.() -> Unit)?,
     cameraFacing: CameraFacing
 ) {
     val context = LocalContext.current
     val imageCapture = remember(context) { ImageCapture.Builder().build() }
     val executor = remember(context) { ContextCompat.getMainExecutor(context) }
 
-    takePhotoController?.let { controller ->
-        controller { onTakePhoto ->
+    captureController?.invoke(object : CaptureController {
+        override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
             imageCapture.takePicture(
                 executor,
                 object :
@@ -58,7 +58,7 @@ actual fun CameraView(
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
                         image.use { imageProxy ->
-                            onTakePhoto(
+                            callback(
                                 imageProxy.image?.planes?.getOrNull(0)?.buffer
                                     ?.moveToByteArray()
                                     ?.toImageBitmap()
@@ -70,12 +70,12 @@ actual fun CameraView(
 
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
-                        onTakePhoto(CaptureResult.Failure)
+                        callback(CaptureResult.Failure)
                     }
                 }
             )
         }
-    }
+    })
 
     CameraViewAndroid(
         modifier = modifier,
