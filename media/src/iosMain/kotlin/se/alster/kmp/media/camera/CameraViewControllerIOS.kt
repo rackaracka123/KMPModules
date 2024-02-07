@@ -7,6 +7,7 @@ import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
+import platform.AVFoundation.AVCaptureMovieFileOutput
 import platform.AVFoundation.AVCapturePhoto
 import platform.AVFoundation.AVCapturePhotoCaptureDelegateProtocol
 import platform.AVFoundation.AVCapturePhotoOutput
@@ -18,7 +19,6 @@ import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravity
-import platform.AVFoundation.AVMediaType
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.AVMetadataMachineReadableCodeObject
 import platform.AVFoundation.AVMetadataObjectTypeQRCode
@@ -29,7 +29,10 @@ import platform.AudioToolbox.AudioServicesPlaySystemSound
 import platform.AudioToolbox.kSystemSoundID_Vibrate
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
+import platform.Foundation.NSFileManager
 import platform.Foundation.NSNotification
+import platform.Foundation.URLByAppendingPathComponent
+import platform.Foundation.temporaryDirectory
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
@@ -77,6 +80,11 @@ internal class CameraViewControllerIOS(
         super.viewDidLoad()
 
         view.backgroundColor = UIColor.blackColor
+        previewLayer.frame = view.layer.bounds
+        previewLayer.videoGravity = videoGravity
+        view.layer.addSublayer(previewLayer)
+
+        captureSession.startRunning()
 
         switchCamera(CameraFacing.Back)
 
@@ -111,11 +119,19 @@ internal class CameraViewControllerIOS(
         captureController?.invoke(
             object : CaptureController {
                 private val capturePhotoOutput = AVCapturePhotoOutput()
+                private val captureVideoFileOutput = AVCaptureMovieFileOutput()
+                private val cameraCaptureFileOutputRecordingDelegateIOS =
+                    CameraCaptureFileOutputRecordingDelegateIOS()
 
                 init {
                     if (captureSession.canAddOutput(capturePhotoOutput)) {
                         captureSession.addOutput(capturePhotoOutput)
                     }
+                    if (captureSession.canAddOutput(captureVideoFileOutput)) {
+                        captureSession.addOutput(captureVideoFileOutput)
+                    }
+                    captureVideoFileOutput.connectionWithMediaType(AVMediaTypeVideo)?.videoOrientation =
+                        actualOrientation
                     capturePhotoOutput.connectionWithMediaType(AVMediaTypeVideo)?.videoOrientation =
                         actualOrientation
                 }
@@ -140,13 +156,22 @@ internal class CameraViewControllerIOS(
                         }
                     )
                 }
+
+                override fun startRecording() {
+                    val path = NSFileManager.defaultManager.temporaryDirectory
+                        .URLByAppendingPathComponent("video.mp4")!!
+                    println("Recording started")
+                    captureVideoFileOutput.startRecordingToOutputFileURL(
+                        outputFileURL = path,
+                        recordingDelegate = cameraCaptureFileOutputRecordingDelegateIOS
+                    )
+                }
+
+                override fun stopRecording() {
+                    println("Recording stopped")
+                    captureVideoFileOutput.stopRecording()
+                }
             })
-
-        previewLayer.frame = view.layer.bounds
-        previewLayer.videoGravity = videoGravity
-        view.layer.addSublayer(previewLayer)
-
-        captureSession.startRunning()
     }
 
     override fun viewWillAppear(animated: Boolean) {

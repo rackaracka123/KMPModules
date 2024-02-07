@@ -18,10 +18,6 @@ import se.alster.kmp.media.camera.CameraView
 fun CameraExample() {
     val coroutineScope = rememberCoroutineScope()
     var cameraFacing by remember { mutableStateOf(CameraFacing.Back) }
-    coroutineScope.launch {
-        delay(5000)
-        cameraFacing = CameraFacing.Front
-    }
     CameraView(
         modifier = Modifier.fillMaxSize(),
         aspectRatio = AspectRatio.FitWithAspectRatio,
@@ -30,10 +26,10 @@ fun CameraExample() {
         },
         captureController = {
             coroutineScope.launch {
+                delay(3000)
+                startRecording()
                 delay(5000)
-                takePicture {
-                    println("Picture taken: $it")
-                }
+                stopRecording()
             }
         },
         cameraFacing = cameraFacing
