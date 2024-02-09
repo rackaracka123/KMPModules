@@ -2,6 +2,7 @@ package org.company.app
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,12 +19,9 @@ import se.alster.kmp.media.camera.rememberCaptureController
 
 @Composable
 fun CameraExample() {
-    val coroutineScope = rememberCoroutineScope()
     var cameraFacing by remember { mutableStateOf(CameraFacing.Back) }
     val cameraController = rememberCaptureController()
-    var mutex by remember { mutableStateOf(false) }
-    coroutineScope.launch {
-        mutex = true
+    LaunchedEffect(Unit) {
         delay(3000)
         cameraController.startRecording()
         delay(1000)
