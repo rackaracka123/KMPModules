@@ -40,7 +40,7 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    captureController: (CaptureController.() -> Unit)?,
+    captureController: CaptureController?,
     cameraFacing: CameraFacing
 ) {
     CameraViewIOS(
@@ -58,19 +58,19 @@ private fun CameraViewIOS(
     modifier: Modifier,
     videoGravity: AVLayerVideoGravity,
     onQrCodeScanned: ((String) -> Unit)?,
-    captureController: (CaptureController.() -> Unit)?,
+    captureController: CaptureController?,
     cameraFacing: CameraFacing
 ) {
-    var cameraState: CameraState by remember { mutableStateOf(CameraState.Undefined) }
+    var cameraState: CameraStateIOS by remember { mutableStateOf(CameraStateIOS.Undefined) }
 
     LaunchedEffect(Unit) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
             AVAuthorizationStatusAuthorized -> {
-                cameraState = CameraState.Access.Authorized
+                cameraState = CameraStateIOS.Access.Authorized
             }
 
             AVAuthorizationStatusDenied, AVAuthorizationStatusRestricted -> {
-                cameraState = CameraState.Access.Denied
+                cameraState = CameraStateIOS.Access.Denied
             }
 
             AVAuthorizationStatusNotDetermined -> {
@@ -78,23 +78,23 @@ private fun CameraViewIOS(
                     mediaType = AVMediaTypeVideo
                 ) { success ->
                     cameraState =
-                        if (success) CameraState.Access.Authorized else CameraState.Access.Denied
+                        if (success) CameraStateIOS.Access.Authorized else CameraStateIOS.Access.Denied
                 }
             }
         }
     }
     when (cameraState) {
-        CameraState.Undefined -> {
+        CameraStateIOS.Undefined -> {
             // Waiting for the user to accept permission
         }
 
-        CameraState.Access.Denied -> {
+        CameraStateIOS.Access.Denied -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text("Camera access denied", color = Color.Black, style = TextStyle.Default)
             }
         }
 
-        CameraState.Simulator -> {
+        CameraStateIOS.Simulator -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text(
                     "Camera not available in simulator",
@@ -104,7 +104,7 @@ private fun CameraViewIOS(
             }
         }
 
-        CameraState.Access.Authorized -> {
+        CameraStateIOS.Access.Authorized -> {
             val cameraViewController =
                 remember {
                     try {
@@ -118,7 +118,7 @@ private fun CameraViewIOS(
                     }
                 }
             if (cameraViewController == null) {
-                cameraState = CameraState.Simulator
+                cameraState = CameraStateIOS.Simulator
             }
             cameraViewController?.let {
                 LaunchedEffect(cameraFacing) {

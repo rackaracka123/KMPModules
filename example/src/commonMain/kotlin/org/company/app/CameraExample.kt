@@ -13,25 +13,31 @@ import kotlinx.coroutines.launch
 import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.camera.CameraFacing
 import se.alster.kmp.media.camera.CameraView
+import se.alster.kmp.media.camera.CaptureController
+import se.alster.kmp.media.camera.rememberCaptureController
 
 @Composable
 fun CameraExample() {
     val coroutineScope = rememberCoroutineScope()
     var cameraFacing by remember { mutableStateOf(CameraFacing.Back) }
+    val cameraController = rememberCaptureController()
+    var mutex by remember { mutableStateOf(false) }
+    coroutineScope.launch {
+        mutex = true
+        delay(3000)
+        cameraController.startRecording()
+        delay(1000)
+        cameraFacing = CameraFacing.Front
+        delay(5000)
+        cameraController.stopRecording()
+    }
     CameraView(
         modifier = Modifier.fillMaxSize(),
         aspectRatio = AspectRatio.FitWithAspectRatio,
         onQrCodeScanned = {
             println("QR code scanned: $it")
         },
-        captureController = {
-            coroutineScope.launch {
-                delay(3000)
-                startRecording()
-                delay(5000)
-                stopRecording()
-            }
-        },
+        captureController = cameraController,
         cameraFacing = cameraFacing
     )
 }
