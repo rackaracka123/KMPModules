@@ -24,8 +24,6 @@ fun CameraExample() {
     LaunchedEffect(Unit) {
         delay(3000)
         cameraController.startRecording()
-        delay(1000)
-        cameraFacing = CameraFacing.Front
         delay(5000)
         cameraController.stopRecording()
     }

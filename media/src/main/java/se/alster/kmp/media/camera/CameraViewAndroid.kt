@@ -64,9 +64,6 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
     internal val videoCapture = VideoCapture.withOutput(recorder)
     private var recording: Recording? = null
 
-    fun onDispose() {
-    }
-
     override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
         imageCapture.takePicture(
             executor,
@@ -102,20 +99,14 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
                 .build()
         )
         recording = pendingRecording
-            .asPersistentRecording()
             .start(executor) {
-                when (it){
-                    is VideoRecordEvent.Start -> println("MAFS: Recording started")
-                    is VideoRecordEvent.Status -> println("MAFS: status: ${it.recordingStats.recordedDurationNanos}")
-                    is VideoRecordEvent.Finalize -> println("MAFS: Recording finalized")
-                }
+                // TODO: Provide a way to listen to the recording events
             }
     }
 
     override fun stopRecording() {
         recording?.stop()
     }
-
 }
 
 @Composable
@@ -128,11 +119,6 @@ actual fun CameraView(
 ) {
     val androidCapture = captureController as CaptureControllerAndroid
 
-    DisposableEffect(Unit) {
-        onDispose {
-            androidCapture.onDispose()
-        }
-    }
     CameraViewAndroid(
         modifier = modifier,
         aspectRatio = aspectRatio,
