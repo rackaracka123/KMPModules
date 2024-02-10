@@ -1,7 +1,9 @@
 package se.alster.kmp.media.camera
 
+import android.Manifest
 import android.content.Context
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresPermission
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -37,6 +39,7 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
         .build()
     internal val videoCapture = VideoCapture.withOutput(recorder)
     private var recording: Recording? = null
+    private var isMuted = false
 
     override fun takePicture(callback: (photo: ImageCaptureResult) -> Unit) {
         imageCapture.takePicture(
@@ -65,6 +68,7 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
         )
     }
 
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @OptIn(ExperimentalPersistentRecording::class)
     override fun startRecording(filepath: FilePath) {
         val pendingRecording = recorder.prepareRecording(
@@ -73,21 +77,19 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
                 .build()
         )
         recording = pendingRecording
+            .withAudioEnabled()
             .start(executor) {
                 // TODO: Provide a way to listen to the recording events
                 when (it) {
                     is VideoRecordEvent.Finalize -> {
                         StorageAndroid(context.filesDir).apply {
-                            read(filepath).let { file ->
-                                println("File size: ${file.size}")
-                            }
+                            println("File size: ${read(filepath).size}")
                             delete(filepath)
                         }
                     }
                 }
             }
     }
-
     override fun stopRecording() {
         recording?.stop()
     }
