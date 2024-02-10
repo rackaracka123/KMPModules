@@ -18,6 +18,7 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.runBlocking
 import se.alster.kmp.media.extensions.moveToByteArray
 import se.alster.kmp.media.extensions.toImageBitmap
 import se.alster.kmp.storage.FilePath
@@ -83,8 +84,10 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
                 when (it) {
                     is VideoRecordEvent.Finalize -> {
                         StorageAndroid(context.filesDir).apply {
-                            println("File size: ${read(filepath).size}")
-                            delete(filepath)
+                            runBlocking {
+                                println("File size: ${read(filepath).size}")
+                                delete(filepath)
+                            }
                         }
                     }
                 }

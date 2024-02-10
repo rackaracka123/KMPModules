@@ -30,8 +30,7 @@ val NSFileManager.DocumentDirectory
 
 
 class StorageIOS : Storage {
-    @OptIn(ExperimentalForeignApi::class)
-    override fun write(file: FilePath, data: ByteArray) {
+    override suspend fun write(file: FilePath, data: ByteArray) {
         NSFileManager.defaultManager.DocumentDirectory
             .URLByAppendingPathComponent(file.path)?.let {
                 println("Writing to $it")
@@ -42,7 +41,7 @@ class StorageIOS : Storage {
             }
     }
 
-    override fun read(file: FilePath): ByteArray {
+    override suspend fun read(file: FilePath): ByteArray {
         return runBlocking {
             println("Reading from ${file.path}")
             NSFileManager.defaultManager.DocumentDirectory
@@ -51,7 +50,7 @@ class StorageIOS : Storage {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun delete(file: FilePath): Boolean {
+    override suspend fun delete(file: FilePath): Boolean {
         NSFileManager.defaultManager.DocumentDirectory
             .URLByAppendingPathComponent(file.path)?.let {
                 NSFileManager.defaultManager.removeItemAtURL(it, error = null)

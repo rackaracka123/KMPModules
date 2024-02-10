@@ -1,8 +1,7 @@
 package se.alster.kmp.storage
 
-// TODO suspend these functions
 interface Storage {
-    fun write(file: FilePath, data: ByteArray)
-    fun read(file: FilePath): ByteArray
-    fun delete(file: FilePath): Boolean
+    suspend fun write(file: FilePath, data: ByteArray)
+    suspend fun read(file: FilePath): ByteArray
+    suspend fun delete(file: FilePath): Boolean
 }

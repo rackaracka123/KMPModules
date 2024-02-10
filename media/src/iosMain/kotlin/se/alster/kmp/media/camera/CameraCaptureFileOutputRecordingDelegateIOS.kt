@@ -2,6 +2,7 @@ package se.alster.kmp.media.camera
 
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.runBlocking
 import platform.AVFoundation.AVCaptureFileOutput
 import platform.AVFoundation.AVCaptureFileOutputRecordingDelegateProtocol
 import platform.Foundation.NSError
@@ -23,9 +24,11 @@ class CameraCaptureFileOutputRecordingDelegateIOS : NSObject(),
     ) {
         val storage = StorageIOS()
         val file = didFinishRecordingToOutputFileAtURL.toFilePath()
-        val video = storage.read(file)
-        println("Video size: ${video.size}")
-        println("error: $error")
-        println("Deleted: ${storage.delete(file)}")
+        runBlocking {
+            val video = storage.read(file)
+            println("Video size: ${video.size}")
+            println("error: $error")
+            println("Deleted: ${storage.delete(file)}")
+        }
     }
 }

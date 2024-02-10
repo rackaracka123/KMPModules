@@ -75,6 +75,7 @@ private fun CameraViewAndroid(
     }
     LaunchedEffect(Unit) {
         launcher.launch(Manifest.permission.CAMERA)
+        launcher.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     DisposableEffect(cameraProviderFuture, cameraPermission, cameraFacing) {
