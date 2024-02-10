@@ -55,7 +55,7 @@ class CaptureControllerIOS : CaptureController {
             actualOrientation
     }
 
-    override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
+    override fun takePicture(callback: (photo: ImageCaptureResult) -> Unit) {
         capturePhotoOutput.capturePhotoWithSettings(
             AVCapturePhotoSettings.photoSettingsWithFormat(
                 format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
@@ -66,10 +66,10 @@ class CaptureControllerIOS : CaptureController {
                     error: NSError?
                 ) {
                     didFinishProcessingPhoto.fileDataRepresentation()?.let {
-                        return callback(CaptureResult.Success(UIImage(it).toImageBitmap()))
+                        return callback(ImageCaptureResult.Success(UIImage(it).toImageBitmap()))
                     }
                     if (error != null) {
-                        return callback(CaptureResult.Failure)
+                        return callback(ImageCaptureResult.Failure)
                     }
                 }
             }

@@ -38,7 +38,7 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
     internal val videoCapture = VideoCapture.withOutput(recorder)
     private var recording: Recording? = null
 
-    override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
+    override fun takePicture(callback: (photo: ImageCaptureResult) -> Unit) {
         imageCapture.takePicture(
             executor,
             object :
@@ -51,15 +51,15 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
                             imageProxy.image?.planes?.getOrNull(0)?.buffer
                                 ?.moveToByteArray()
                                 ?.toImageBitmap()
-                                ?.let { CaptureResult.Success(it) }
-                                ?: CaptureResult.Failure
+                                ?.let { ImageCaptureResult.Success(it) }
+                                ?: ImageCaptureResult.Failure
                         )
                     }
                 }
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
-                    callback(CaptureResult.Failure)
+                    callback(ImageCaptureResult.Failure)
                 }
             }
         )
