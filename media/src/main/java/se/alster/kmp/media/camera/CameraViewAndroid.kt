@@ -6,22 +6,14 @@ import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.FallbackStrategy
-import androidx.camera.video.FileOutputOptions
-import androidx.camera.video.Quality
-import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
@@ -38,10 +30,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import se.alster.kmp.media.AspectRatio
-import se.alster.kmp.media.extensions.moveToByteArray
-import se.alster.kmp.media.extensions.toImageBitmap
 import se.alster.kmp.media.extensions.toLensFacing
-import java.io.File
 import java.util.concurrent.Executor
 
 @Composable
@@ -49,78 +38,18 @@ actual fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    captureController: (CaptureController.() -> Unit)?,
+    captureController: CaptureController?,
     cameraFacing: CameraFacing
 ) {
-    val context = LocalContext.current
-    val imageCapture = remember(context) { ImageCapture.Builder().build() }
-    val executor = remember(context) { ContextCompat.getMainExecutor(context) }
-    val qualitySelector = QualitySelector.fromOrderedList(
-        listOf(Quality.UHD, Quality.FHD, Quality.HD, Quality.SD),
-        FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)
-    )
-    val recorder = remember(context) {
-        Recorder.Builder()
-            .setQualitySelector(qualitySelector)
-            .setExecutor(executor)
-            .build()
-    }
-    val videoCapture = remember(context) {
-        VideoCapture.withOutput(recorder)
-    }
-    var recording: Recording? by remember { mutableStateOf(null) }
-
-    captureController?.invoke(object : CaptureController {
-        override fun takePicture(callback: (photo: CaptureResult) -> Unit) {
-            imageCapture.takePicture(
-                executor,
-                object :
-                    ImageCapture.OnImageCapturedCallback() {
-                    @androidx.annotation.OptIn(ExperimentalGetImage::class)
-                    override fun onCaptureSuccess(image: ImageProxy) {
-                        super.onCaptureSuccess(image)
-                        image.use { imageProxy ->
-                            callback(
-                                imageProxy.image?.planes?.getOrNull(0)?.buffer
-                                    ?.moveToByteArray()
-                                    ?.toImageBitmap()
-                                    ?.let { CaptureResult.Success(it) }
-                                    ?: CaptureResult.Failure
-                            )
-                        }
-                    }
-
-                    override fun onError(exception: ImageCaptureException) {
-                        super.onError(exception)
-                        callback(CaptureResult.Failure)
-                    }
-                }
-            )
-        }
-
-        override fun startRecording() {
-            println("Start recording")
-            recording = recorder.prepareRecording(
-                context, FileOutputOptions
-                    .Builder(File(context.filesDir, "video.mp4"))
-                    .build()
-            ).start(executor
-            ) {}
-        }
-
-        override fun stopRecording() {
-            println("Stop recording")
-            recording?.stop()
-        }
-    })
+    val androidCapture = captureController as CaptureControllerAndroid
 
     CameraViewAndroid(
         modifier = modifier,
         aspectRatio = aspectRatio,
-        executor = executor,
-        imageCapture = imageCapture,
+        executor = androidCapture.executor,
+        imageCapture = androidCapture.imageCapture,
         cameraFacing = cameraFacing,
-        videoCapture = videoCapture
+        videoCapture = androidCapture.videoCapture
     )
 }
 

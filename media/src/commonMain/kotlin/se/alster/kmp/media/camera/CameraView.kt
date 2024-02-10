@@ -9,6 +9,6 @@ expect fun CameraView(
     modifier: Modifier,
     aspectRatio: AspectRatio,
     onQrCodeScanned: ((String) -> Unit)?,
-    captureController: (CaptureController.() -> Unit)?,
+    captureController: CaptureController?,
     cameraFacing: CameraFacing
 )

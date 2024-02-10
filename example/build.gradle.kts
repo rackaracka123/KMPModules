@@ -27,6 +27,7 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(project(":media"))
+            implementation(project(":storage"))
             implementation(compose.runtime)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
