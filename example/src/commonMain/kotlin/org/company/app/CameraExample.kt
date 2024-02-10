@@ -16,15 +16,17 @@ import se.alster.kmp.media.camera.CameraFacing
 import se.alster.kmp.media.camera.CameraView
 import se.alster.kmp.media.camera.CaptureController
 import se.alster.kmp.media.camera.rememberCaptureController
+import se.alster.kmp.storage.FilePath
+import se.alster.kmp.storage.Location
 
 @Composable
 fun CameraExample() {
     var cameraFacing by remember { mutableStateOf(CameraFacing.Back) }
     val cameraController = rememberCaptureController()
     LaunchedEffect(Unit) {
+        delay(1000)
+        cameraController.startRecording(FilePath("video.mp4", Location.Documents))
         delay(3000)
-        cameraController.startRecording()
-        delay(5000)
         cameraController.stopRecording()
     }
     CameraView(

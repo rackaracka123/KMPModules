@@ -4,4 +4,4 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
 @Composable
-actual fun rememberCaptureController(): CaptureController = remember { Foo() }
+actual fun rememberCaptureController(): CaptureController = remember { CaptureControllerIOS() }

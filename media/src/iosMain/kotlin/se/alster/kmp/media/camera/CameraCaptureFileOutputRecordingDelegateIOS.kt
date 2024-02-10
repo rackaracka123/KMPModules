@@ -8,31 +8,24 @@ import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
 import platform.darwin.NSObject
+import se.alster.kmp.storage.FilePath
+import se.alster.kmp.storage.Location
+import se.alster.kmp.storage.StorageIOS
+import se.alster.kmp.storage.toFilePath
 
 class CameraCaptureFileOutputRecordingDelegateIOS : NSObject(),
     AVCaptureFileOutputRecordingDelegateProtocol {
-    @OptIn(ExperimentalForeignApi::class)
     override fun captureOutput(
         output: AVCaptureFileOutput,
         didFinishRecordingToOutputFileAtURL: NSURL,
         fromConnections: List<*>,
         error: NSError?
     ) {
-        println(
-            "Video size: ${
-                NSFileManager.defaultManager.contentsAtPath(
-                    didFinishRecordingToOutputFileAtURL.path!!
-                )!!.length
-            }"
-        )
+        val storage = StorageIOS()
+        val file = didFinishRecordingToOutputFileAtURL.toFilePath()
+        val video = storage.read(file)
+        println("Video size: ${video.size}")
         println("error: $error")
-        println(
-            "Deleted: ${
-                NSFileManager.defaultManager.removeItemAtURL(
-                    didFinishRecordingToOutputFileAtURL,
-                    null
-                )
-            }"
-        )
+        println("Deleted: ${storage.delete(file)}")
     }
 }

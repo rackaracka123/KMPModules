@@ -14,9 +14,12 @@ import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import se.alster.kmp.media.extensions.moveToByteArray
 import se.alster.kmp.media.extensions.toImageBitmap
+import se.alster.kmp.storage.FilePath
+import se.alster.kmp.storage.StorageAndroid
 import java.io.File
 
 class CaptureControllerAndroid(private val context: Context) : CaptureController {
@@ -63,15 +66,25 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
     }
 
     @OptIn(ExperimentalPersistentRecording::class)
-    override fun startRecording() {
+    override fun startRecording(filepath: FilePath) {
         val pendingRecording = recorder.prepareRecording(
             context, FileOutputOptions
-                .Builder(File(context.filesDir, "video.mp4"))
+                .Builder(File(context.filesDir, filepath.path))
                 .build()
         )
         recording = pendingRecording
             .start(executor) {
                 // TODO: Provide a way to listen to the recording events
+                when (it) {
+                    is VideoRecordEvent.Finalize -> {
+                        StorageAndroid(context.filesDir).apply {
+                            read(filepath).let { file ->
+                                println("File size: ${file.size}")
+                            }
+                            delete(filepath)
+                        }
+                    }
+                }
             }
     }
 

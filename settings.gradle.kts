@@ -18,3 +18,4 @@ rootProject.name = "AlsterKMPModules"
 include(":example")
 include(":theme")
 include(":media")
+include(":storage")
