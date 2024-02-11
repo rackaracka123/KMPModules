@@ -8,7 +8,6 @@ import se.alster.kmp.media.AspectRatio
 import se.alster.kmp.media.player.PlayerView
 import se.alster.kmp.media.player.Track
 import se.alster.kmp.media.player.TrackList
-import se.alster.kmp.media.player.TrackLocation
 import se.alster.kmp.media.player.rememberPlayer
 import se.alster.kmp.storage.FilePath
 import se.alster.kmp.storage.Location
@@ -28,8 +27,8 @@ fun VideoPlayerExample() {
         player.prepareTrackListForPlayback(
             TrackList(
                 listOf(
-                    Track.Mp4(TrackLocation.File(FilePath("video.mp4", Location.Documents))),
-                    Track.Mp4(TrackLocation.File(FilePath("video.mp4", Location.Documents))),
+                    Track.File(FilePath("video.mp4", Location.Documents)),
+                    Track.File(FilePath("video.mp4", Location.Documents)),
                 )
             )
         )
