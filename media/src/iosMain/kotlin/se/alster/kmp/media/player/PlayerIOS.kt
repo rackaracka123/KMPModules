@@ -27,9 +27,7 @@ import platform.AVFoundation.volume
 import platform.AVKit.AVPlayerViewController
 import platform.CoreMedia.CMTimeMake
 import platform.Foundation.NSNotificationCenter
-import platform.Foundation.NSURL.Companion.URLWithString
 import se.alster.kmp.media.AspectRatio
-import se.alster.kmp.media.player.extensions.getUrl
 import se.alster.kmp.media.toAVLayerVideoGravity
 import se.alster.kmp.media.player.extensions.toAVPlayerItem
 import se.alster.kmp.media.player.extensions.toAVPlayerItems
@@ -85,14 +83,14 @@ class PlayerIOS : Player {
 
     override fun prepareTrackForPlayback(track: Track) {
         playerItems.clear()
-        val playerItem = AVPlayerItem(URLWithString(track.getUrl())!!)
+        val playerItem = track.toAVPlayerItem()
         playerItems.add(playerItem)
         avPlayer.replaceCurrentItemWithPlayerItem(playerItem)
     }
 
     override fun prepareTrackListForPlayback(playList: TrackList) {
         playerItems.clear()
-        playerItems.addAll(playList.tracks.map { AVPlayerItem(URLWithString(it.getUrl())!!) })
+        playerItems.addAll(playList.tracks.map { it.toAVPlayerItem() })
         currentPlayingIndex = 0
         avPlayer.replaceCurrentItemWithPlayerItem(currentPlayingItem)
     }
@@ -114,10 +112,6 @@ class PlayerIOS : Player {
 
     override fun removeTrackFromTrackList(index: Int) {
         playerItems.removeAt(index)
-    }
-
-    override fun replaceTrackInTrackList(track: Track, index: Int) {
-        playerItems[index] = track.toAVPlayerItem()
     }
 
     override fun replaceAllTracksInTrackList(trackList: TrackList) {

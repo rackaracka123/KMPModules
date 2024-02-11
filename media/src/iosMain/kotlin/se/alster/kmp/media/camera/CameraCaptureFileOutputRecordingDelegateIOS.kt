@@ -26,9 +26,9 @@ class CameraCaptureFileOutputRecordingDelegateIOS : NSObject(),
         val file = didFinishRecordingToOutputFileAtURL.toFilePath()
         runBlocking {
             val video = storage.read(file)
+            println("File path: ${didFinishRecordingToOutputFileAtURL.path}")
             println("Video size: ${video.size}")
             println("error: $error")
-            println("Deleted: ${storage.delete(file)}")
         }
     }
 }

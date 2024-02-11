@@ -44,20 +44,16 @@ class StorageIOS : Storage {
     override suspend fun read(file: FilePath): ByteArray {
         return runBlocking {
             println("Reading from ${file.path}")
-            NSFileManager.defaultManager.DocumentDirectory
-                .URLByAppendingPathComponent(file.path)?.readBytes()!!
+            file.toNSURL().readBytes()
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun delete(file: FilePath): Boolean {
-        NSFileManager.defaultManager.DocumentDirectory
-            .URLByAppendingPathComponent(file.path)?.let {
-                NSFileManager.defaultManager.removeItemAtURL(it, error = null)
-            }
+        NSFileManager.defaultManager.removeItemAtURL(file.toNSURL(), error = null)
+
         return !NSFileManager.defaultManager.fileExistsAtPath(
-            NSFileManager.defaultManager.DocumentDirectory
-                .URLByAppendingPathComponent(file.path)?.path!!
+            file.toNSURL().path!!
         )
     }
 

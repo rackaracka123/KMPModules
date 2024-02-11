@@ -2,19 +2,21 @@ package se.alster.kmp.media.player
 
 import android.Manifest
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleObserver
 import androidx.media3.common.C
-import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.MediaSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import se.alster.kmp.media.player.extensions.buildMediaItem
+import se.alster.kmp.media.player.extensions.buildMediaSource
 import se.alster.kmp.media.player.extensions.toAndroidRepeatMode
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -22,8 +24,9 @@ import kotlin.time.Duration.Companion.seconds
 
 private val PositionFlowResolution = 100.milliseconds
 
+@UnstableApi
 class PlayerAndroid(
-    context: Context,
+    private val context: Context,
     coroutineScope: CoroutineScope,
     addLifecyleObserver: (LifecycleObserver) -> Unit,
     private val removeLifecycleObserver: (LifecycleObserver) -> Unit
@@ -55,19 +58,19 @@ class PlayerAndroid(
     }
 
     override fun prepareTrackForPlayback(track: Track) {
-        val mediaItem = track.buildMediaItem()
-        exoPlayer.setMediaItem(mediaItem)
+        val mediaSource = track.buildMediaSource(context)
+        exoPlayer.setMediaSource(mediaSource)
         exoPlayer.prepare()
     }
 
-    override fun prepareTrackListForPlayback(
+    @OptIn(UnstableApi::class) override fun prepareTrackListForPlayback(
         playList: TrackList,
     ) {
         if (exoPlayer.mediaItemCount > 0) {
             exoPlayer.clearMediaItems()
         }
-        val mediaItems = createMediaItems(playList)
-        exoPlayer.setMediaItems(mediaItems)
+        val mediaItems = createMediaSources(playList)
+        exoPlayer.setMediaSources(mediaItems)
         exoPlayer.prepare()
     }
 
@@ -81,27 +84,22 @@ class PlayerAndroid(
     }
 
     override fun addTrackToTrackList(track: Track) {
-        val mediaItem = track.buildMediaItem()
-        exoPlayer.addMediaItem(mediaItem)
+        val mediaSource = track.buildMediaSource(context)
+        exoPlayer.addMediaSource(mediaSource)
     }
 
     override fun addTrackToTrackList(track: Track, index: Int) {
-        val mediaItem = track.buildMediaItem()
-        exoPlayer.addMediaItem(index, mediaItem)
+        val mediaSource = track.buildMediaSource(context)
+        exoPlayer.addMediaSource(index, mediaSource)
     }
 
     override fun removeTrackFromTrackList(index: Int) {
         exoPlayer.removeMediaItem(index)
     }
 
-    override fun replaceTrackInTrackList(track: Track, index: Int) {
-        val mediaItem = track.buildMediaItem()
-        exoPlayer.replaceMediaItem(index, mediaItem)
-    }
-
     override fun replaceAllTracksInTrackList(trackList: TrackList) {
-        val mediaItems = createMediaItems(trackList)
-        exoPlayer.setMediaItems(mediaItems)
+        val mediaItems = createMediaSources(trackList)
+        exoPlayer.setMediaSources(mediaItems)
     }
 
     override fun getCurrentlyPlayingIndex(): Int {
@@ -126,8 +124,8 @@ class PlayerAndroid(
         return exoPlayer.duration.milliseconds
     }
 
-    private fun createMediaItems(playlist: TrackList): List<MediaItem> =
-        playlist.tracks.map { it.buildMediaItem() }
+    private fun createMediaSources(playlist: TrackList): List<MediaSource> =
+        playlist.tracks.map { it.buildMediaSource(context) }
 
     override fun isPlaybackReady(): Boolean {
         return exoPlayer.isCommandAvailable(ExoPlayer.COMMAND_PLAY_PAUSE)

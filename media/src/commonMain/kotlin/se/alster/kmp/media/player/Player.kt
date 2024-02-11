@@ -13,7 +13,6 @@ interface Player {
     fun addTrackToTrackList(track: Track)
     fun addTrackToTrackList(track: Track, index: Int)
     fun removeTrackFromTrackList(index: Int)
-    fun replaceTrackInTrackList(track: Track, index: Int)
     fun replaceAllTracksInTrackList(trackList: TrackList)
     fun getCurrentlyPlayingIndex(): Int
     fun setPlayOnReady(playOnReady: Boolean)

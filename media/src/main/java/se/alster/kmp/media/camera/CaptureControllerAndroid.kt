@@ -40,7 +40,6 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
         .build()
     internal val videoCapture = VideoCapture.withOutput(recorder)
     private var recording: Recording? = null
-    private var isMuted = false
 
     override fun takePicture(callback: (photo: ImageCaptureResult) -> Unit) {
         imageCapture.takePicture(
@@ -85,8 +84,9 @@ class CaptureControllerAndroid(private val context: Context) : CaptureController
                     is VideoRecordEvent.Finalize -> {
                         StorageAndroid(context.filesDir).apply {
                             runBlocking {
+                                println("File path: ${File(context.filesDir, filepath.path).path}")
                                 println("File size: ${read(filepath).size}")
-                                delete(filepath)
+                                //delete(filepath)
                             }
                         }
                     }
