@@ -28,10 +28,10 @@ import platform.AVKit.AVPlayerViewController
 import platform.CoreMedia.CMTimeMake
 import platform.Foundation.NSNotificationCenter
 import se.alster.kmp.media.AspectRatio
-import se.alster.kmp.media.toAVLayerVideoGravity
 import se.alster.kmp.media.player.extensions.toAVPlayerItem
 import se.alster.kmp.media.player.extensions.toAVPlayerItems
 import se.alster.kmp.media.player.extensions.toDuration
+import se.alster.kmp.media.toAVLayerVideoGravity
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -75,10 +75,18 @@ class PlayerIOS : Player {
     }
 
     override fun release() {
-        avPlayer.removeTimeObserver(addPeriodicTimeObserverForInterval)
-        NSNotificationCenter.defaultCenter.removeObserver(trackCompletedObserver)
         avPlayer.pause()
         avPlayer.replaceCurrentItemWithPlayerItem(null)
+        try {
+            NSNotificationCenter.defaultCenter.removeObserver(trackCompletedObserver)
+        } catch (e: Exception) {
+            println("Failed to remove track completed observer, Could be that it was already removed.")
+        }
+        try {
+            avPlayer.removeTimeObserver(addPeriodicTimeObserverForInterval)
+        } catch (e: Exception) {
+            println("Failed to remove time observer, Could be that it was already removed.")
+        }
     }
 
     override fun prepareTrackForPlayback(track: Track) {
