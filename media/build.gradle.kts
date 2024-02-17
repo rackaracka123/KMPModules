@@ -24,7 +24,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = URI("https://maven.pkg.github.com/alsterverse/AlsterKMPModules")
+            url = URI("https://maven.pkg.github.com/rackaracka123/KMPModules")
             credentials {
                 username = githubProperties.getProperty("username") ?: System.getenv("GITHUB_ACTOR")
                 password = githubProperties.getProperty("token")  ?: System.getenv("GITHUB_TOKEN")

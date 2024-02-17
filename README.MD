@@ -27,7 +27,7 @@ Make sure `your_github_token` has permissions to read packages. For more informa
     ```kotlin
     maven {
         name = "GitHubPackages"
-        url = java.net.URI("https://maven.pkg.github.com/alsterverse/AlsterKMPModules")
+        url = java.net.URI("https://maven.pkg.github.com/rackaracka123/KMPModules")
         credentials {
             username = username
             password = token
