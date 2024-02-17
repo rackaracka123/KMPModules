@@ -9,5 +9,6 @@ expect fun PlayerView(
     modifier: Modifier,
     player: Player,
     aspectRatio: AspectRatio,
-    enableMediaControls: Boolean
+    enableMediaControls: Boolean,
+    releasePlayerOnDispose: Boolean
 )

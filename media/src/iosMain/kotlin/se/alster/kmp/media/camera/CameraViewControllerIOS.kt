@@ -1,5 +1,6 @@
 package se.alster.kmp.media.camera
 
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
@@ -110,6 +111,7 @@ internal class CameraViewControllerIOS(
         switchCamera(cameraFacing)
     }
 
+    @OptIn(BetaInteropApi::class)
     @Suppress("UNUSED_PARAMETER")
     @ObjCAction
     fun orientationDidChange(arg: NSNotification) {

@@ -13,15 +13,18 @@ actual fun PlayerView(
     modifier: Modifier,
     player: Player,
     aspectRatio: AspectRatio,
-    enableMediaControls: Boolean
+    enableMediaControls: Boolean,
+    releasePlayerOnDispose: Boolean
 ) {
     val playerIOS = player as? PlayerIOS ?: return
     playerIOS.setAspectRatio(aspectRatio)
     playerIOS.setEnableMediaControls(enableMediaControls)
 
-    DisposableEffect(Unit) {
+    DisposableEffect(playerIOS) {
         onDispose {
-            playerIOS.release()
+            if (releasePlayerOnDispose){
+                playerIOS.release()
+            }
         }
     }
 

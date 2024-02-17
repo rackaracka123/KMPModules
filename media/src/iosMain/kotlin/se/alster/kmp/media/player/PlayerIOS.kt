@@ -77,16 +77,8 @@ class PlayerIOS : Player {
     override fun release() {
         avPlayer.pause()
         avPlayer.replaceCurrentItemWithPlayerItem(null)
-        try {
-            NSNotificationCenter.defaultCenter.removeObserver(trackCompletedObserver)
-        } catch (e: Exception) {
-            println("Failed to remove track completed observer, Could be that it was already removed.")
-        }
-        try {
-            avPlayer.removeTimeObserver(addPeriodicTimeObserverForInterval)
-        } catch (e: Exception) {
-            println("Failed to remove time observer, Could be that it was already removed.")
-        }
+        NSNotificationCenter.defaultCenter.removeObserver(trackCompletedObserver)
+        avPlayer.removeTimeObserver(addPeriodicTimeObserverForInterval)
     }
 
     override fun prepareTrackForPlayback(track: Track) {
