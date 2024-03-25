@@ -6,7 +6,7 @@ androidxCamera = "1.3.1"
 androidxActivity = "1.8.1"
 qrCore = "3.5.3"
 androidx-appcompat = "1.6.1"
-compose-uitooling = "1.5.4"
+compose-uitooling = "1.6.4"
 media3Exoplayer = "1.2.1"
 
 [libraries]
